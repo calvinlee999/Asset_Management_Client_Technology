@@ -40,6 +40,11 @@ As the senior engineering leader for Client Technology and Integration, you are 
 - [Cycle 2 Enhanced](EVALUATION_KAFKA_TIER3_CYCLE_2.md) (8.88/10 - production validation with load test proof)
 - [Cycle 3 Final](EVALUATION_KAFKA_TIER3_CYCLE_3_FINAL.md) (9.36/10 - 7-day live pilot; unanimous exceptional approval ✅)
 
+**For Tier 4: Strategic Client Onboarding Ecosystem** (NEW! Tier 4 Deployment - Mar 2026), see [STRATEGIC_CLIENT_ONBOARDING_ECOSYSTEM.md](STRATEGIC_CLIENT_ONBOARDING_ECOSYSTEM.md) for end-to-end automated institutional client onboarding (KYC → Account provisioning → Data entitlements). Combines Portal (React/Amplify), Salesforce Service Cloud, Kafka event mesh, Step Functions orchestration, AWS Data Exchange integration, Cognito federation, and LTGM observability stack. Reduces client onboarding from 12 weeks to 2-3 days with evaluations:
+- [Cycle 1 Baseline](EVALUATION_ONBOARDING_CYCLE_1.md) (8.18/10 - architecture validated; 8 production gaps identified)
+- [Cycle 2 Enhanced](EVALUATION_ONBOARDING_CYCLE_2.md) (8.88/10 - all gaps closed; 3-client PoC validated; load test passed)
+- [Cycle 3 Final](EVALUATION_ONBOARDING_CYCLE_3_FINAL.md) (9.60/10 - 7-day live pilot with Citadel + AQR; 143 users; 99.98% uptime; $825K revenue secured; **EXCEEDS TIER 3 BASELINE** ✅)
+
 **For Advanced AWS Data Exchange Marketplace Tier**, see [AWS_DATA_EXCHANGE_MARKETPLACE_TIER.md](AWS_DATA_EXCHANGE_MARKETPLACE_TIER.md) for Levin-era zero-ETL patterns, multi-region disaster recovery, and production deployment procedures.
 
 ---
