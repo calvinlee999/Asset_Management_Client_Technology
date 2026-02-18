@@ -24,10 +24,178 @@ As the senior engineering leader for Client Technology and Integration, you are 
 - **Architecture governance** ensuring patterns, security, run costs, and UX excellence
 - **Team leadership** of principal engineers, architects, and software engineering managers
 - **Digitalization & automation** initiatives with business partners (Sales, Marketing, Distribution)
+- **Vendor consolidation** through unified data mesh (Aladdin, Bloomberg, FactSet)
+
+### Reference Documentation
+**For Advanced AWS Data Exchange Marketplace Tier**, see [AWS_DATA_EXCHANGE_MARKETPLACE_TIER.md](AWS_DATA_EXCHANGE_MARKETPLACE_TIER.md) for Levin-era zero-ETL patterns, multi-region disaster recovery, and production deployment procedures.
 
 ---
 
-## 2. Multi-Modal Data Distribution Mesh Architecture
+## 1.5 The Integrated Investment Data Mesh
+
+### Business Context: Modern Asset Management Vendor Consolidation
+
+Modern firms face siloed system complexity:
+- **Aladdin (BlackRock)**: Real-time portfolio system; every trade must be captured <100ms
+- **Bloomberg & FactSet**: Market data subscriptions; can tolerate 5-15min delay
+- **Internal Systems**: Salesforce, risk engines, compliance (fragmented)
+
+**Problem**: Manual reconciliation between Aladdin (internal state) + Bloomberg (market prices) + risk engines (exposure) creates delays and errors.
+
+**Solution**: Unified data mesh via AWS where Aladdin CDC feeds real-time events, Bloomberg/FactSet publish via ADX zero-copy, and internal systems query unified layer.
+
+---
+
+## 1.6 Strategic Talking Points for Shaw Levin
+
+Given Shaw's background as AWS Data Exchange architect + FinOps/SRE engineer, focus on these three "high-bar" dimensions:
+
+### A. FinOps Challenge: Cost as First-Class Citizen
+
+**Talking Point**:
+> "With petabyte-scale data ingest from Aladdin, Bloomberg, and FactSet, 'Run Cost' can't be afterthought. I've implemented AWS Cost Categories: Aladdin CDC ($45K/mo), Bloomberg ADX ($5K/mo zero-egress), internal storage ($1K/day). Total: $290K/year. Compare to legacy push model: $2M/year (egress charges for 1000 clients). **85% cost reduction from architecture choice, not just AWS discounts.**"
+
+**Numbers to memorize**:
+- Aladdin CDC: 3 MSK brokers, 10K events/sec during market hours
+- Bloomberg: $5M annual subscription → now $5K/mo storage (clients pay query compute)
+- Internal storage: 50TB medallion lake at $1K/day AWS storage charges
+- Total: $290K/year = $24K/month operational expense
+
+### B. SRE & Resilience: Chaos Engineering for Vendor Dependencies
+
+**Talking Point**:
+> "Integrating three external vendors creates complex failure modes. If Aladdin CDC lags (which happens!), portfolio analytics degrade. If Bloomberg ADX subscription fails, clients can't query market data. I've implemented resilience patterns: (1) Circuit Breaker for Kafka producer—if Aladdin CDC API exceeds 30sec latency, we buffer events locally and retry; (2) Bulkhead isolation—Aladdin consumer runs on dedicated thread pool, never starving REST API handlers; (3) Automatic failover—if ADX becomes unavailable, switch to Athena cached copy (15min old but better than 500 error). **Result: Service survives any single vendor outage with acceptable degradation.**"
+
+**Resilience Scenarios to Prepare**:
+1. Aladdin CDC lags >30sec → circuit breaker engages → buffer locally → retry with exponential backoff
+2. Bloomberg ADX endpoint returns 503 → fallback to Athena cache (via Lambda retry) → notify clients "data 15min delayed"
+3. FactSet Redshift cluster unavailable → queries rerouted to backup read replica in us-west-2 → RTO <5min
+
+### C. Data-as-a-Product: Internal Zero-Copy Sharing
+
+**Talking Point**:
+> "You built AWS Data Exchange—you know the value of zero-copy data sharing. I want to apply that internally: treat our proprietary alpha (portfolio analytics, risk models) as a 'Data Product' for internal teams. Using AWS Lake Formation row-level security, Risk/Sales/Trading engineers get instant read-only access. No data copies, no security reviews, no API latency. Within 24 hours of joining, a Sales engineer can self-serve: 'Show me funds with >15% tech exposure AND <12% volatility' without touching our APIs. **Business impact: Suitability analysis time drops from 3 days (manual data pulls) to 3 hours (self-service query).**"
+
+**Internal Data Products to Demonstrate**:
+1. Portfolio Analytics: Current NAV, performance YTD, Greeks by asset class
+2. Risk Dashboard: VaR, concentration risk, liquidity analysis
+3. Compliance Reports: GIPS performance, FINRA CAT transaction log
+4. Sales Enablement: Fund match scores, performance comparisons, fee models
+
+---
+
+## 1.7 Proactive Actions: Risk Mitigation & Strategic KPIs
+
+### How We "Squeeze the Lemon": Convert Risks into Opportunities
+
+| Risk Area | Proactive Mitigation | Implementation | Strategic KPI | Evidence of Success |
+|-----------|--------|-----------------|-------------|----------------------|
+| **Vendor Lock-In (Aladdin + ADX combo)** | Export to open formats quarterly; 90-day contract exit clause | Quarterly Glue jobs export Parquet + Iceberg; contract specifies data portability | Can migrate to competitor in 90 days | Successful dry-run migration to S3 + Snowflake (no code changes needed) |
+| **Data Silos** | Centralized Identity Mesh reconciling Aladdin/Bloomberg/Salesforce IDs | Lambda job syncs portfolio IDs across systems nightly; DynamoDB lookup table | Single SQL query joins Aladdin + Bloomberg + internal data | Sales query: "All funds with >$100M AUM AND Bloomberg subscribe" completes in <1sec |
+| **Security Gaps from external integrations** | Zero-Trust architecture for all vendor connections | PrivateLink for Aladdin (no internet), IAM roles for Bloomberg ADX (no creds passed), encrypted channels | SOC2 Type II audit score: 98%+ | Zero breaches; zero credential leaks in logs; quarterly penetration test passes |
+| **Vendor API Outages** | Multi-source fallbacks with graceful degradation | Circuit breaker: if CDC lag >30sec, buffer locally; if ADX fails, query Athena snapshot; if FactSet 503, retry | RTO <4 hours; RPO <1 hour | Incident: ADX down 2hrs → clients got cached data from 2hrs ago → service kept running |
+| **Cost Explosion from scaled data ingestion** | FinOps cost categories segregating by vendor + auto-alerts | Separate AWS tags for Aladdin MSK, Bloomberg storage, internal ETL; CloudWatch alert if >10% month-over-month increase | Cost per GB ingested <$0.001 | Running $290K/year vs. $350K/year budget (20% underspend) |
+| **Performance Degradation under load** | Bulkhead thread pool isolation + circuit breaker | Aladdin consumer: dedicated 20-thread pool (never starves API); API thread pool: separate 100-thread pool | API p95 latency <500ms even during peak Aladdin ingestion; p99 <1s | Load test: 10K Aladdin events/sec ingesting simultaneously with 5K API requests/sec → API stays <300ms |
+
+---
+
+## 1.8 Salesforce Ecosystem & Strategic Integration Blueprint
+
+### The CRM-to-Insights Integration Imperative
+
+For the Head of Client Technology role at Nomura, Salesforce is **not just a CRM**; it is the **Engagement Orchestration Layer** of the distribution engine. To align with the AWS-first strategy and the high-value needs of Asset Management (AM), the architecture must shift from "Salesforce as a silo" to "Salesforce as a headless consumer of the Data Mesh."
+
+### A. Domain Deep Dive: Sales Cloud vs. Service Cloud
+
+#### Sales Cloud (The Growth Engine)
+**Focus**: Institutional Sales & Distribution  
+**Key AM Capability**: Institutional Pipeline Management (complex, long-cycle deals with sovereign wealth funds or pension funds)
+
+**Advanced Features**:
+- **Einstein Relationship Insights**: AI-driven mapping of connections between consultants, portfolio managers, and institutional leads
+- **Account Teams & Sharing Models**: Critical for managing cross-border distribution (Japan vs. US teams collaborating on global clients)
+- **Activity Capture**: Auto-logging emails/meetings ensures high data fidelity for sales leadership
+
+#### Service Cloud (The Retention Engine)
+**Focus**: Client Onboarding, Investor Relations, and Reporting Support  
+**Key AM Capability**: Entitlement Management (authorizing institutional clients for specific private market data or premium research)
+
+**Advanced Features**:
+- **Case Management & Omni-Channel**: Routing complex queries ("Why did the NAV for Fund X dip?") to the right SME
+- **Experience Cloud Integration**: Powering the secure client portal where institutional investors download monthly/quarterly reports
+
+### B. Integration Blueprint: Salesforce in the AWS Ecosystem
+
+**Data Layer—The "Zero-Copy" Strategy**:
+- Use Salesforce Data Cloud (Data 360) to connect AWS S3 Gold Layer
+- Salesforce "reads" live investment data (NAV, Attribution) directly via Athena connector
+- No data duplication into Salesforce = cost-efficient + always fresh
+
+**Process Layer—Event-Driven Orchestration**:
+```
+Salesforce Contract Signed (Sales Cloud)
+  ↓
+  → Outbound Message via EventBridge
+  → AWS Step Functions workflow triggered
+  → Validate client record
+  → Lookup client AWS Account ID
+  → Call AWS ADX API to grant dataset access
+  → Update Salesforce contract status
+  ↓
+  SLA: <2 minutes from signature → ADX activation
+```
+
+**Enablement Layer—Content & Intelligence**:
+- Seismic embedded in Salesforce: RM views lead → latest approved collateral surfaces automatically
+- PowerBI embedded via LWC: RM opens account → sees client portfolio analytics without context switch
+- Alerts: Client downloads report → Service Cloud case created for proactive follow-up
+
+### C. Strategic "Proactive Actions" (Mitigating Lemons)
+
+| Challenge | Mitigation | Strategic Value |
+|-----------|---|---|
+| **Data Fragmentation** | Data Cloud as \"Identity Mesh\" to unify IDs across AWS, Salesforce, Seismic | SSOT (Single Source of Truth) |
+| **User Experience Friction** | Salesforce Lightning Console + Amazon Connect integration | Reduces screen-switching; RM calls handled from console |
+| **Compliance Risk** | Salesforce Shield + AWS Lake Formation RLS | SOC2/FINRA audit compliance at field level |
+| **Legacy Integration Debt** | MuleSoft on AWS bridges legacy banking systems | Shortens data integration from 6→2 months |
+
+### D. Interview Talking Point
+
+> \"At Nomura, Salesforce isn't just a CRM. It's the Engagement Orchestration Layer of our distribution engine. When an RM opens a client account, they see real-time portfolio analytics embedded directly in Salesforce—no context switching. Combined with Seismic for content delivery and Amazon Connect for omni-channel support, we've transformed the CRM into a **real-time insights engine**. Result: Deal velocity 2x faster, sales cycles compress from 90→45 days.\"
+
+### E. Logical Architecture: The \"Three-Layer\" Integration (Identity Mesh)
+
+**Layer 1: Presentation** - Power BI/QuickSight embedded directly into Salesforce Account pages via Lightning Web Components (LWC)
+
+**Layer 2: Data** - Salesforce Data Cloud queries S3 Gold Layer via Athena (zero-copy integration); ensures RMs see same data as clients
+
+**Layer 3: Identity** - OIDC/IAM federation; JWT tokens carry client_id metadata; row-level security enforced at Athena query level (Client A never sees Client B's data)
+
+---
+
+## 2. Logical Architecture: Nomura Front-to-Back Stack
+
+Map each industry tool to its optimal AWS integration method:
+
+| Domain | Industry Tool | Business Purpose | AWS Component | Integration Pattern | Latency SLA | Cost Model |
+|--------|---|---|---|---|---|---|
+| **Front Office** | Bloomberg | Real-time market pricing, volatility, news | AWS Data Exchange + Redshift Data Share | Zero-ETL (no copy) | 5-15 min (market hours) | Subscription included in ADX |
+| **Front Office** | FactSet | Financial analytics, comp companies, research | AWS Data Exchange + Lake Formation RLS | Zero-copy SQL queries | On-demand | Subscription to FactSet |
+| **Middle Office** | BlackRock Aladdin | Portfolio manager system of record; real-time trading | Amazon MSK (Kafka) + AppFlow CDC | Real-time Change Data Capture stream | <100ms (per trade) | Aladdin license + MSK storage |
+| **Risk & Performance** | GIPS Compliance Suite | Performance reporting engine | AWS Step Functions + Vermillion API | Orchestrated report generation | End-of-day batch | Internal SLA |
+| **Risk & Performance** | Custom Risk Engines | VaR, Greeks, PnL calculations | Lambda + Athena | Event-driven triggers on portfolio update | <5 min | Lambda + Athena storage |
+| **Digital/Sales** | Salesforce | CRM, entitlements, contract management | AWS AppSync (GraphQL) + Lambda | Real-time sync via Outbound Messages | <1 second | Salesforce license |
+| **Compliance** | Regulatory Repositories | CAT, CFR, audit trails | S3 Object Lock + CloudTrail | Immutable storage with versioning | Archived (7yr retention) | S3 storage ($23/TB/year) |
+
+**Key Insight**: Each vendor has distinct latency + throughput + cost requirements. We don't force them through a single pipeline; instead, we match integration pattern to vendor SLA:
+- **Aladdin**: Real-time CDC (must capture every trade <100ms)
+- **Bloomberg/FactSet**: Zero-copy ADX (high cost if replicated; better to let client query)
+- **GIPS**: Scheduled batch (end-of-day is sufficient for compliance reports)
+- **Salesforce**: Event-driven (minimal latency for entitlement provisioning)
+
+---
+
+## 2.1 Multi-Modal Data Distribution Mesh Architecture
 
 The core architectural pattern evolves from a "push-based" reporting model to a **4-Tier Distribution Mesh**, allowing clients to consume data via their preferred channel.
 
@@ -61,28 +229,118 @@ The core architectural pattern evolves from a "push-based" reporting model to a 
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### 2.1 Tier 1: Digital Layer (Web/Mobile/Dashboards)
+### 2.1 Tier 1: Digital Layer (Web/Mobile/Dashboards) — Comprehensive Architecture
 
-**Purpose**: Real-time visualization and interactive analytics for Portfolio Managers and Relationship Managers
+**Purpose**: Real-time visualization and interactive analytics for Portfolio Managers and Relationship Managers with seamless Salesforce integration
 
 **Technology Stack**:
 - **Frontend**: React + TypeScript on AWS Amplify
-- **Visualization**: PowerBI for self-service analytics
+- **Visualization**: PowerBI for self-service analytics + Amazon QuickSight for internal FinOps
 - **Backend Compute**: Amazon Athena + S3 (Medallion Architecture)
-- **Real-time Data**: Amazon QuickSight for dashboards
-- **Authentication**: AWS Cognito + SAML integration
+- **Real-time Data**: QuickSight with SPICE caching for sub-second loads
+- **Authentication**: AWS Cognito + SAML + Salesforce SSO
+- **Embedding**: Lightning Web Components (LWC) for Salesforce UI integration
+- **API**: GraphQL + REST via API Gateway
 
 **Key Characteristics**:
-- Low-latency queries (<5 seconds for complex aggregations)
-- Multi-tenancy with role-based access control (RBAC)
-- Real-time performance attribution
-- Customizable dashboards per client
+- Low-latency queries (<5 sec for complex aggregations; <1 sec for cached)
+- Multi-tenancy with RBAC enforced at Athena query level
+- Real-time performance attribution via Kafka → materialized views
+- Customizable dashboards per client (Power BI parameterized reports)
+- Context-aware filtering (Account_ID from Salesforce → auto-filtered dashboard)
 
 **Sample Data Products**:
-- NAV history and performance analytics
-- Risk factor decomposition
-- Fee impact analysis
-- Client reporting templates
+- **Internal Operational Dashboards** (Amazon QuickSight):
+  - NAV & Performance Analytics (real-time portfolio updates)
+  - Risk Dashboard (VaR, Sharpe ratio, concentration risk)
+  - FinOps Dashboard (AWS spend by domain: Aladdin vs. Bloomberg vs. internal)
+  - SRE Observability (EKS cluster utilization, data pipeline latency, error rates)
+
+- **Client-Facing Dashboards** (Power BI Embedded):
+  - Current NAV + 1-/3-/5-year performance vs. benchmarks
+  - Attribution breakdown by fund manager / strategy / geography
+  - Exposure analysis (equity %, fixed income %, alternatives %)
+  - Fee transparency and cost-benefit analysis
+  - Risk simulations (\"What if\" portfolio stress tests)
+
+**Architecture: The \"Three-Layer\" Integration (Identity Mesh)**
+
+#### Layer 1: Presentation (The \"Single Pane of Glass\")
+**Pattern**: LWC Embedding in Salesforce  
+Power BI/QuickSight dashboards embedded directly into Salesforce Account or Opportunity pages
+
+```typescript
+// Lightning Web Component (Salesforce)
+import { LightningElement, api } from 'lwc';
+export default class PowerBIEmbedded extends LightningElement {
+  @api recordId; // Account_ID from Salesforce context
+  embedUrl;
+  connectedCallback() {
+    // Pass Account_ID to PowerBI dashboard as filter
+    this.embedUrl = `https://app.powerbi.com/view?r=eyJrIjoiYWJ...` +
+      `&config=${btoa(JSON.stringify({
+        \"filterPaneEnabled\": false,
+        \"filters\": [{
+          \"name\": \"Account_ID\",
+          \"values\": [this.recordId]
+        }]
+      }))}`; // Client sees only their holdings
+  }
+}
+```
+
+When RM opens \"BlackRock\" account, dashboard auto-filters to show only BlackRock holdings, AUM, and performance.
+
+#### Layer 2: Data (The \"Zero-Copy\" Mesh)
+**Pattern**: Salesforce Data Cloud + AWS S3/Athena  
+Salesforce \"reads\" live investment data directly from AWS S3 Gold Layer (no data duplication)
+
+```sql
+SELECT portfolio_id, nav_current, aum_total, perf_ytd, perf_1yr
+FROM s3://nomura-data-lake/gold/portfolio_analytics/
+WHERE profile_id = @account_context
+  AND date = CURRENT_DATE
+```
+
+Both Salesforce and Power BI query same S3 → single source of truth, <1 min latency
+
+#### Layer 3: Identity (The Secure Bridge)
+**Pattern**: OIDC + Row-Level Security (RLS)  
+JWT token carries user context; Athena enforces RLS at query level
+
+```
+RM logs into Salesforce via OKTA
+  ↓
+  Opens BlackRock account page
+  ↓
+  PowerBI LWC requests embed token from Lambda
+  ↓
+  Lambda validates: User_ID → Account ownership
+  ↓
+  JWT generated with claims {user_id, account_id, role}
+  ↓
+  PowerBI applies RLS: Filter to account_id in JWT
+  ↓
+  RM cannot see competitor data (APAC RM cannot see EMEA client data)
+```
+
+**Strategic Use Cases**
+
+| Use Case | Workflow | Implementation | Outcome |
+|----------|----------|---|---|
+| **RM Alpha Discovery** | Identify under-allocated clients | PowerBI in SFDC finds clients with low fund exposure; auto-create task | 5 new prospects/day with hyper-personalized pitches |
+| **Investor Portal Sync** | Client downloads report; RM notified | Client portal → EventBridge → SFDC case | Proactive outreach within 2 hours; NPS +5 |
+| **FinOps Visibility** | Shaw Levin sees AWS spend | QuickSight feeds EKS metrics + Cost Explorer | 20% cost optimization monthly |
+| **Distribution Analytics** | Measure pitch-to-close velocity | SFDC Opportunity + Seismic engagement in QuickSight | Sales cycle 90→45 days |
+
+**Proactive Actions (The \"Lemons\" Table)**
+
+| Lemon | Mitigation | Implementation | Impact |
+|-------|-----------|---|---|
+| **Data Latency** | Use SPICE or DirectQuery | SPICE 15-min refresh; DirectQuery for <1min freshness | <1 sec dashboard load (cached) vs. 5+ sec (uncached) |
+| **High Licensing Costs** | Session-based pricing + embed | QuickSight readers $2/user/mo; Power BI embedded | 60% reduction in BI spend |
+| **Fragmented UX** | Custom branding/themes | Nomura colors, logos, fonts in embed layer | User adoption +25%; NPS +10 |
+| **Manual Provisioning** | AWS CloudFormation + Power BI APIs | terraform deploys dashboards | New dashboard live in <2 hours (vs. 3-5 days) |
 
 ---
 
@@ -176,7 +434,50 @@ Nomura Macro Signals               // Leading indicators
 
 ---
 
-## 3. Core Integration Patterns
+## 3. Comparison: AWS Data Exchange vs. Snowflake Data Exchange
+
+Both enable zero-copy data sharing, but serve different architectural contexts:
+
+### Quick Comparison Matrix
+
+| Aspect | AWS Data Exchange | Snowflake Data Exchange |
+|--------|-------------------|------------------------|
+| **Architecture** | Metadata-only sharing via Redshift/S3/Glue | Live data sharing within Snowflake ecosystem |
+| **Data Movement** | No duplication; consumers query provider's storage | No duplication; consumers query within Snowflake cloud |
+| **Platform Lock-In** | AWS-only (S3, Redshift, Lambda, Athena) | Snowflake-only (but works on AWS/Azure/GCP clouds) |
+| **Ideal Customer** | Enterprises with AWS data lake | Enterprises using Snowflake as primary warehouse |
+| **Cost Model** | Providers: pay storage; Consumers: pay compute | Providers: pay storage; Consumers: pay warehouse compute |
+| **Multi-Cloud** | AWS only | Seamless across AWS/Azure/GCP |
+| **Setup Complexity** | Moderate (IAM roles, Redshift sharing, Lake Formation) | Simple (built-in ADX UI; share creation is click-and-share) |
+| **Time-to-Launch** | 2 weeks (product creation) | 6+ weeks (licensing, data migration) |
+| **Vendor Partner Ecosystem** | Bloomberg, FactSet, Yahoo Finance on ADX | Fewer fintech vendors compared to ADX |
+| **Governance** | AWS Lake Formation RLS + IAM + resource policies | Snowflake role-based access + secure shares + tagging |
+| **Use Case: Nomura** | ✅ **CHOSEN** - Existing S3/Redshift | ❌ Would require wholesale migration ($5M+) |
+
+### Nomura's Decision: AWS Data Exchange
+
+**Why ADX**:
+1. **Existing investment**: S3 + Redshift + Glue already deployed; ADX adds ~5% effort
+2. **Vendor distribution**: Bloomberg & FactSet already publish equity / derivatives data to AWS via ADX
+3. **Cost advantage**: $290K/year vs. $600K+/year if we switched to Snowflake licensing model
+4. **Technical alignment**: ADX subscribers (clients) pay only for compute (no separate warehouse licenses) → simpler finance model for Nomura
+5. **Aladdin integration**: MSK Kafka + Redshift is native AWS; Snowflake would force different ingestion architecture
+
+**Migration cost to Snowflake**:
+- Data lake rip-and-replace: $3-5M
+- Workflow rewriting: 6+ months engineering
+- Aladdin CDC adapter: must rebuild for Snowflake native connectors
+- Learning curve: Snowflake SQL quirks, Snowpark, Iceberg compatibility
+- Result: Not worth it when AWS Data Exchange already works
+
+**When Snowflake might be compelling**:
+- If Nomura already heavily invested in Snowflake (they're not)
+- If we needed seamless multi-cloud (we're AWS-first strategy)
+- If we needed simpler governance (Lake Formation RLS is comparable)
+
+---
+
+## 4. Core Integration Patterns
 
 ### 3.1 Entitlement Automation: Salesforce ↔ AWS Data Exchange
 
@@ -263,7 +564,7 @@ When data quality issues arise (stale NAV, missing performance data), clients ex
 
 ---
 
-## 4. Technology Stack & Choices
+## 5. Technology Stack & Choices
 
 ### 4.1 Compute & Data
 
@@ -321,7 +622,7 @@ When data quality issues arise (stale NAV, missing performance data), clients ex
 
 ---
 
-## 5. KPIs & Success Metrics
+## 6. KPIs & Success Metrics
 
 ### 5.1 Operational KPIs
 
@@ -344,35 +645,132 @@ When data quality issues arise (stale NAV, missing performance data), clients ex
 
 ---
 
-## 6. Roadmap & Phasing
+## 7. Roadmap & Phasing
 
-### Phase 1 (Q1 2026): MVP - Multi-Modal Foundation
+### Vendor Consolidation Timeline: From Legacy to Unified Mesh
+
+#### Phase 1 (Q1 2026): Aladdin CDC Foundation (Months 1-3)
 - ✅ Digital Layer: PowerBI dashboards (internal + first 5 pilot clients)
 - ✅ SaaS Tier: REST APIs for NAV + Performance endpoints
-- ⏳ Async Tier: Kafka topics for trade execution events
-- ⏳ Entitlement Automation: Salesforce → Step Functions pipeline
+- ⏳ Aladdin CDC: PrivateLink connection + Kafka ingest pipeline (CDC consumer pattern)
+- ⏳ Real-time entitlement sync: Salesforce → Step Functions → granting portfolio access
 
-**Deliverable**: 60% of client base consuming via at least 2 channels
+**Aladdin-Specific Milestones**:
+- Month 1: PrivateLink tunnel to Aladdin established; CDC events flowing
+- Month 2: Kafka consumer stability; <100ms end-to-end latency verified
+- Month 3: Gold layer portfolio snapshots queryable via Athena
 
-### Phase 2 (Q2 2026): Marketplace & Extensibility
-- ✅ AWS Data Exchange product launch
-- ✅ Automated entitlement sync (100% automation)
-- ✅ GraphQL API layer (for complex queries)
-- ⏳ Client self-service dashboard builder
+**Team Hires for Phase 1**:
+- Principal Architect (lead vision)
+- Aladdin Integration Lead ($240K, L4) — owns CDC pipeline
+- 2 Backend Engineers (MSK + Kafka patterns)
+- DevOps Engineer ($180K, datacenter + monitoring)
 
-**Deliverable**: $1M ADX subscription revenue; <24hr onboarding
+**Business Impact**: 60% faster client onboarding for Aladdin-sourced data; real-time portfolio analytics
 
-### Phase 3 (Q3 2026): Intelligence & Optimization
-- ⏳ AI-powered anomaly detection (data quality)
-- ⏳ Predictive entitlement provisioning
-- ⏳ Cost optimization (reserved capacity negotiation)
-- ⏳ Advanced analytics (consumption patterns, churn prediction)
-
-**Deliverable**: 80% data adoption; 85% cost reduction achieved
+**Deliverable**: 50% of client base consuming Aladdin data via APIs; CDC latency <100ms
 
 ---
 
-## 7. Engineering Team Structure
+#### Phase 2 (Q2 2026): Bloomberg & FactSet Zero-Copy (Months 4-6)
+- ✅ AWS Data Exchange product launch
+- ✅ Redshift Data Share for FactSet analytics
+- ✅ Automated entitlement sync (100% automation)
+- ✅ GraphQL API layer (for complex queries spanning Aladdin + Bloomberg)
+
+**Bloomberg/FactSet-Specific Milestones**:
+- Month 4: ADX product listing + first 5 Bloomberg subscribers live
+- Month 5: Redshift Data Share + RLS policies enforced
+- Month 6: GraphQL queries joining Aladdin + Bloomberg data
+
+**Team Hires for Phase 2**:
+- Bloomberg Integration Lead ($240K, L4) — owns ADX product lifecycle
+- FactSet Integration Lead ($240K, L4) — owns Redshift Data Share governance
+- Data Quality Engineer ($200K) — validates cross-domain data consistency
+- Security Engineer ($220K) — Lake Formation RLS policies + audit logging
+
+**Business Impact**: 90% egress cost reduction (vs. legacy push model); zero-copy enables subscribers to scale without Nomura infrastructure cost
+
+**Deliverable**: $1M ADX subscription revenue; <24hr client onboarding; 35% of clients now on zero-copy model
+
+---
+
+#### Phase 3 (Q3 2026): Intelligence & GIPS Automation (Months 7-9)
+- ⏳ GIPS reporting automation (Step Functions → Vermillion)
+- ⏳ AI-powered anomaly detection (Amazon Bedrock + Llama models for outlier flagging)
+- ⏳ Predictive entitlement provisioning (ML: predict which clients will want which data)
+- ⏳ Advanced analytics (consumption patterns, churn prediction, data affinity)
+
+**GIPS/Compliance-Specific Milestones**:
+- Month 7: GIPS reports auto-generated from Aladdin + Bloomberg + internal cost basis
+- Month 8: Anomaly detection live (trade price vs. Bloomberg: flag >2% discrepancies)
+- Month 9: Churn prediction model active (flag at-risk clients; trigger proactive outreach)
+
+**Team Hires for Phase 3**:
+- Analytics Lead ($200K) — owns GIPS automation
+- ML Engineer ($210K) — owns anomaly detection models
+- Solutions Architect ($220K) — customer success + feature requests
+- QA Lead ($190K) — comprehensive testing
+
+**Business Impact**: 100% GIPS compliance automation (was manual); 5-hour GIPS generation (was 2 days); anomaly detection catches data quality issues before clients see them
+
+**Deliverable**: 80% data adoption; 85% cost reduction achieved; 5 new data products launched
+
+---
+
+### Vendor Timeline Heatmap
+
+| Vendor | Phase 1 (M1-M3) | Phase 2 (M4-M6) | Phase 3 (M7-M9) | Status |
+|--------|-----------------|-----------------|-----------------|--------|
+| **Aladdin** | ✅ CDC live, <100ms latency | Enrichment + Redshift join | ML anomaly detection | Critical path |
+| **Bloomberg** | Planning | ✅ ADX product live | FactSet + Bloomberg join | ADX dependent |
+| **FactSet** | Research | ✅ Redshift Data Share | Analytics + GIPS join | Phase 2 follow-on |
+| **Internal Systems** | Foundation (APIs, Kafka) | RLS + multi-tenancy | Governance + SSOT | Continuous |
+
+---
+
+## 8. Engineering Team Structure
+
+### Domain-Based Organization
+
+Instead of traditional "API team" + "Data team," we organize around **data domains**:
+
+```
+Senior Engineering Leader (You)
+│
+├── Aladdin Domain Lead (L4, Principal Engineer - $240K)
+│   ├── CDC Pipeline Engineer ($180K)
+│   ├── Kafka Specialist ($170K)
+│   └── Performance Testing Engineer ($160K)
+│   Owns: Real-time portfolio data, <100ms SLA, trade audit trail
+│
+├── Bloomberg/FactSet Domain Lead (L4, Principal Engineer - $240K)
+│   ├── ADX Product Engineer ($200K)
+│   ├── Redshift/Data Sharing Engineer ($190K)
+│   └── Data Quality Engineer ($200K)
+│   Owns: Zero-copy market data, subscriber lifecycle, governance
+│
+├── Internal Data Mesh Lead (L4, Principal Architect - $250K)
+│   ├── Salesforce Integration Engineer ($170K)
+│   ├── Identity Mesh Engineer ($180K)
+│   └── Multi-Tenancy Engineer ($170K)
+│   Owns: RBAC, RLS, entitlement lifecycle, internal data products
+│
+├── Platform & Reliability (L3, Principal SRE - $220K)
+│   ├── Kubernetes + Monitoring Engineer ($180K)
+│   ├── Disaster Recovery Engineer ($180K)
+│   └── Security + Compliance Engineer ($220K)
+│   Owns: Resilience, failover, incident response, SOC2 compliance
+│
+└── Engineering Manager (L3, $200K)
+    ├── 4 Backend Engineers (Kafka, Spring Boot, L2-L3)
+    ├── 3 Frontend Engineers (React, Dashboards, L2-L3)
+    └── Admin & Hiring
+
+**Total: 24 FTE, ~$3.8M annual opex (incl. overhead)**
+```
+
+---
 
 ### Organization Chart
 
@@ -404,7 +802,7 @@ Senior Engineering Leader (You)
 
 ---
 
-## 8. Critical Success Factors
+## 9. Critical Success Factors
 
 ### 8.1 Technical Pillars
 1. **Scalability**: Handle 10x growth in client base and data volume
@@ -422,7 +820,7 @@ Senior Engineering Leader (You)
 
 ---
 
-## 9. Architecture Decision Records (ADRs)
+## 10. Architecture Decision Records (ADRs)
 
 ### ADR-001: Multi-Modal Distribution over Single Channel
 **Decision**: Implement 4-tier distribution mesh (Web, API, Kafka, ADX) instead of single "API-first" approach
@@ -490,7 +888,7 @@ Senior Engineering Leader (You)
 
 ---
 
-## 9.1 Code Examples & Implementation Patterns
+## 10.1 Code Examples & Implementation Patterns
 
 ### Example 1: REST API for NAV Lookup (Spring Boot)
 
@@ -689,7 +1087,216 @@ public class NAVProducer {
 
 ---
 
-## 9.2 Operational Runbooks
+## 10.1 End-to-End Integration: Aladdin Trade → Athena Query
+
+### The Complete Flow (Marcus Johnson's Request)
+
+**Scenario**: Aladdin trade (1000 shares AAPL @ $150) → CDC captures → Kafka → enriched → S3 → queried by client
+
+#### Step 1: Aladdin CDC Captures Trade
+
+```java
+// Lambda triggered by AppFlow CDC event from Aladdin
+public class AladdinCDCLambda implements RequestHandler<AvroEvent, String> {
+  
+  @Override
+  public String handleRequest(AvroEvent event, Context context) {
+    // Event schema: tradeId, portfolio, security, qty, price, timestamp
+    logger.info("CDC Event: {} {} shares of {} @ {}", 
+      event.getTradeId(), event.getQty(), event.getSecurity(), event.getPrice());
+    
+    // Call AppFlow → MSK producer
+    sendToKafka(event);
+    return "OK";
+  }
+}
+```
+
+#### Step 2: Kafka Producer Publishes
+
+```java
+public class AladdinCDCProducer {
+  private final KafkaTemplate<String, AladdinTradeEvent> kafkaTemplate;
+  
+  public void publishTrade(AladdinTrade trade) {
+    AladdinTradeEvent event = AladdinTradeEvent.builder()
+      .tradeId(UUID.randomUUID().toString())  // Idempotency
+      .portfolioId(trade.getPortfolioId())
+      .security(trade.getSecurity())
+      .quantity(trade.getQuantity())
+      .price(trade.getExecutionPrice())
+      .timestamp(Instant.now())
+      .sourceSystem("ALADDIN")
+      .tenantId(trade.getTenantId())
+      .build();
+    
+    // Add trace ID for cross-domain observability
+    event.setTraceId(MDC.get("traceId"));
+    
+    kafkaTemplate.send("aladdin.trades", trade.getPortfolioId(), event);
+  }
+}
+```
+
+#### Step 3: Spring Boot Consumer Enriches from Redshift
+
+```java
+@Component
+public class AladdinTradeEnricher {
+  
+  private final JdbcTemplate redshiftTemplate;
+  private final S3Client s3Client;
+  private final CloudWatchClient cloudWatch;
+  
+  @KafkaListener(topics = "aladdin.trades", groupId = "enrich-consumer")
+  public void consumeAndEnrich(AladdinTradeEvent trade) {
+    try {
+      // Step 3a: Lookup Bloomberg data from Redshift Data Share
+      Map<String, Object> bloombergData = redshiftTemplate.queryForMap(
+        "SELECT last_price, bid_ask_spread FROM bloomberg_data.securities WHERE isin = ?",
+        trade.getIsin()
+      );
+      
+      // Step 3b: Join with our internal cost basis
+      Map<String, Object> internalData = redshiftTemplate.queryForMap(
+        "SELECT cost_basis, current_quantity FROM gold.positions WHERE portfolio_id = ? AND security = ?",
+        trade.getPortfolioId(), trade.getSecurity()
+      );
+      
+      // Step 3c: Enrich event
+      EnrichedTrade enriched = EnrichedTrade.builder()
+        .tradeId(trade.getTradeId())
+        .aladdinPrice(trade.getPrice())
+        .bloombergPrice((BigDecimal) bloombergData.get("last_price"))
+        .internalCostBasis((BigDecimal) internalData.get("cost_basis"))
+        .priceDiscrepancy(((BigDecimal) trade.getPrice())
+          .subtract((BigDecimal) bloombergData.get("last_price")))
+        .traceId(MDC.get("traceId"))  // Carry trace through system
+        .build();
+      
+      // Step 3d: Write to S3 Gold layer (Parquet format for query performance)
+      writeToS3Gold(enriched);
+      
+      // Metrics for CloudWatch
+      cloudWatch.putMetricData(request -> request
+        .namespace("AladdinDataMesh")
+        .metricData(MetricDatum.builder()
+          .metricName("TradesEnrichedPerMinute")
+          .value(1.0)
+          .build()
+        )
+      );
+      
+    } catch (Exception ex) {
+      logger.error("Enrichment failed for trade={}: {}", trade.getTradeId(), ex.getMessage());
+      dlqTemplate.send("aladdin.trades.dlq", trade);  // Dead letter queue
+    }
+  }
+  
+  private void writeToS3Gold(EnrichedTrade enriched) {
+    String s3Path = String.format(
+      "s3://data-lake/gold/aladdin_trades/date=%s/trade_%s.parquet",
+      LocalDate.now(), enriched.getTradeId()
+    );
+    
+    // Write as Parquet for Athena query efficiency
+    s3Client.putObject(request -> request
+      .bucket("data-lake")
+      .key(s3Path)
+      .contentType("application/octet-stream")
+      .build(),
+      RequestBody.fromBytes(serializeToParquet(enriched))
+    );
+  }
+}
+```
+
+#### Step 4: Athena Query with Row-Level Security
+
+```sql
+-- Client-A queries Athena; RLS filters to their portfolio only
+-- RLS enforced by Lake Formation dynamic policy
+
+SELECT
+  trade_id,
+  portfolio_id,
+  security,
+  quantity,
+  aladdin_price,
+  bloomberg_price,
+  price_discrepancy,
+  timestamp
+FROM s3://data-lake/gold/aladdin_trades/
+WHERE 
+  portfolio_id IN (SELECT portfolio_id FROM client_entitlements 
+                   WHERE client_id = current_user)  -- RLS constraint
+  AND date >= date_format(current_date - INTERVAL '1' DAY, '%Y-%m-%d')
+ORDER BY timestamp DESC;
+```
+
+---
+
+### Resilience4j Circuit Breaker Implementation
+
+```java
+@Configuration
+public class AladdinResilienceConfig {
+  
+  @Bean
+  public CircuitBreaker aladdinCDCCircuitBreaker() {
+    return CircuitBreaker.of("aladdin-cdc",
+      CircuitBreakerConfig.custom()
+        .failureThreshold(5)          // Open after 5 failures
+        .slowCallRateThreshold(30)    // Open if >30% of calls slow
+        .slowCallDurationThreshold(Duration.ofSeconds(2))
+        .waitDurationInOpenState(Duration.ofSeconds(30))
+        .permittedNumberOfCallsInHalfOpenState(3)  // Try 3 calls to recover
+        .build()
+    );
+  }
+  
+  @Bean
+  public Retry aladdinRetry() {
+    return Retry.of("aladdin-cdc",
+      RetryConfig.custom()
+        .maxAttempts(3)
+        .waitDuration(Duration.ofMillis(500))
+        .intervalFunction(IntervalFunction.ofExponentialBackoff(500, 2))
+        .build()
+    );
+  }
+}
+
+@Component
+public class ResilientAladdinConsumer {
+  
+  private final CircuitBreaker circuitBreaker;
+  private final Retry retry;
+  private final KafkaTemplate<String, AladdinTradeEvent> deadLetterQueue;
+  
+  @KafkaListener(topics = "aladdin.trades")
+  public void consumeWithResilience(ConsumerRecord<String, AladdinTradeEvent> record) {
+    try {
+      circuitBreaker.executeRunnable(() ->
+        retry.executeRunnable(() -> {
+          processAladdinTrade(record.value());
+        })
+      );
+    } catch (CircuitBreakerOpenException | CallNotPermittedException ex) {
+      logger.warn("Circuit breaker OPEN; buffering trade locally");
+      bufferForRetry(record.value());
+    }
+  }
+  
+  private void processAladdinTrade(AladdinTradeEvent trade) throws IOException {
+    // Actual processing logic
+  }
+}
+```
+
+---
+
+## 10.2 Operational Runbooks
 
 ### Runbook 1: API Latency Spike Investigation
 
@@ -775,7 +1382,7 @@ public class NAVProducer {
 
 ---
 
-## 9.3 Monitoring & Alerting Strategy
+## 10.3 Monitoring & Alerting Strategy
 
 ### Key Metrics Dashboard
 
@@ -790,7 +1397,7 @@ public class NAVProducer {
 
 ---
 
-## 9.4 Resilience Patterns & Disaster Recovery
+## 10.4 Resilience Patterns & Disaster Recovery
 
 ### Circuit Breaker Pattern (for Kafka Producer)
 
@@ -1078,7 +1685,7 @@ CREATE TABLE audit_log (
 
 
 
-## 10. Getting Started
+## 11. Getting Started
 
 ### Prerequisites
 - AWS Account with appropriate permissions (AdministratorAccess for setup)
@@ -1178,7 +1785,202 @@ Asset_Management_Client_Technology/
 
 ---
 
-## 10.1 Team Onboarding Guide
+## 11.1 Team Onboarding Guide
+
+### "Hello World" Developer Tasks (Your First Week Contributions)
+
+**Goal**: Contribute real code to production data pipeline by end of Week 1
+
+#### Task 1: Consume Aladdin Events from Kafka (Day 2-3)
+
+```java
+// Create: KafkaConsumerTest.java (your first test)
+package com.nomura.aladdin.consumer;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.kafka.test.context.EmbeddedKafka;
+import static org.junit.jupiter.api.Assertions.*;
+
+@EmbeddedKafka(partitions = 1, brokerProperties = {
+  "listeners=PLAINTEXT://localhost:9092"
+})
+public class AladdinTradeConsumerTest {
+  
+  @Test
+  void testConsumeTradeEvent() {
+    // 1. Create a mock Aladdin trade event
+    AladdinTradeEvent trade = AladdinTradeEvent.builder()
+      .tradeId("TRD-001")
+      .portfolio("USD-LIQ")
+      .security("AAPL")
+      .quantity(1000)
+      .price(BigDecimal.valueOf(150.00))
+      .build();
+    
+    // 2. Send it to Kafka topic
+    kafkaTemplate.send("aladdin.trades", "USD-LIQ", trade);
+    
+    // 3. Your consumer processes it (verify output)
+    assertTrue(consumer.hasProcessedTrade("TRD-001"));
+    assertEquals(1000, consumer.getQuantityProcessed());
+  }
+}
+
+// Run: ./gradlew test -i AladdinTradeConsumerTest
+// Success: ✅ You've consumed a real Kafka event!
+```
+
+**Learning Outcomes**:
+- Understand Spring Cloud Stream Kafka integration
+- See how Aladdin trades flow through the system
+- Learn embedded Kafka testing pattern
+
+---
+
+#### Task 2: Query Athena for Your First Data (Day 4)
+
+```python
+# Create: scripts/query_aladdin_trades.py
+import boto3
+import time
+
+athena_client = boto3.client('athena', region_name='us-east-1')
+
+# Simple query: count trades from today
+query = """
+SELECT COUNT(*) as trade_count, portfolio_id
+FROM s3://data-lake/gold/aladdin_trades/
+WHERE date = date_format(current_date, '%Y-%m-%d')
+GROUP BY portfolio_id
+"""
+
+# Execute query
+response = athena_client.start_query_execution(
+    QueryString=query,
+    QueryExecutionContext={'Database': 'data_mesh'},
+    ResultConfiguration={'OutputLocation': 's3://athena-results/'},
+    WorkGroup='primary'
+)
+
+execution_id = response['QueryExecutionId']
+
+# Wait for results
+while True:
+    result = athena_client.get_query_execution(QueryExecutionId=execution_id)
+    status = result['QueryExecution']['Status']['State']
+    
+    if status in ['SUCCEEDED', 'FAILED', 'CANCELLED']:
+        break
+    time.sleep(1)
+
+# Get results
+if status == 'SUCCEEDED':
+    results = athena_client.get_query_results(QueryExecutionId=execution_id)
+    for row in results['ResultSet']['Rows']:
+        print(f"Portfolio: {row['Data'][1]['VarCharValue']}, Trades: {row['Data'][0]['VarCharValue']}")
+
+# Run: python scripts/query_aladdin_trades.py
+# Output: Portfolio: USD-LIQ, Trades: 1247
+# Success: ✅ You've queried production Aladdin data!
+```
+
+**Learning Outcomes**:
+- Understand S3 data lake partitioning
+- Learn Athena query execution
+- See end-to-end: Kafka → S3 → query
+
+---
+
+#### Task 3: Write Your First RLS Policy (Day 5)
+
+```python
+# Create: terraform/lake_formation_rls.tf
+resource "aws_lake_formation_data_lake_settings" "this" {
+  # Enable data lake governance
+  admins = ["arn:aws:iam::ACCOUNT:user/you"]
+}
+
+# RLS Policy: Client-A sees only their portfolios
+resource "aws_lakeformation_resource_lf_tags" "aladdin_trades" {
+  arn   = "arn:aws:s3:::data-lake/gold/aladdin_trades"
+  
+  lf_tags = {
+    "data_classification" = "portfolio_data"
+    "vendor_source"       = "aladdin"
+  }
+}
+
+resource "aws_lake_formation_data_lake_principal_permissions" "client_a_portfolio" {
+  principal   = "arn:aws:iam::ACCOUNT:role/ClientARole"
+  permissions = ["SELECT"]
+  
+  table_with_columns_resource {
+    database_name = "data_mesh"
+    table_name    = "aladdin_trades"
+    
+    wildcard_columns = true
+    
+    # RLS row filter: Client-A sees only their portfolios
+    expression = "portfolio_id IN (SELECT portfolio_id FROM client_entitlements WHERE client_id = 'CLIENT-A')"
+  }
+}
+
+# Deploy: terraform apply
+# Success: ✅ You've built data governance!
+```
+
+**Learning Outcomes**:
+- Understand Lake Formation row-level security
+- Learn to implement multi-tenant data access
+- See how Nomura isolates client data
+
+---
+
+### Day 1: Environment Setup
+- [ ] Create AWS IAM user and configure local credentials
+- [ ] Clone repository: `git clone https://github.com/calvinlee999/Asset_Management_Client_Technology.git`
+- [ ] Setup IDE (VS Code with Java/Kotlin extensions)
+- [ ] Spin up local Kafka cluster: `docker-compose -f docker/docker-compose.kafka.yml up`
+- [ ] Run unit tests: `gradle test`
+- [ ] Read Section 12 (Fintech Glossary): Understand Aladdin, Bloomberg, FactSet, CDC
+- [ ] Read Section 1.5-1.6 (Data Mesh + Talking Points): Business context
+
+**Success criteria**: Can run `mvn spring-boot:run` and see API responding; understand why CDC is needed for Aladdin
+
+### Week 1: Architecture Deep Dive
+- [ ] **Day 2**: Read ADR-001 through ADR-004; understand why 4-tier distribution mesh beats single API
+- [ ] **Day 3**: Complete "Hello World Task 1" (Kafka consumer test)
+- [ ] **Day 4**: Complete "Hello World Task 2" (Athena query)
+- [ ] **Day 5**: Complete "Hello World Task 3" (RLS policy)
+- [ ] **Day 5**: Review vendor consolidation table (Table 2.0); explain to peer why Aladdin = CDC, Bloomberg = ADX, FactSet = Redshift share
+
+**Success criteria**: Submitted 3 PRs (Kafka test + Athena script + Terraform RLS); can explain vendor integration strategy
+
+### Week 2: Hands-On Contribution
+- [ ] Pick an issue labeled `good-first-issue` (ideally in Aladdin domain or data quality validation)
+- [ ] Submit first PR (even if small bug fix or documentation)
+- [ ] Attend architecture review meeting (learn how team makes decisions)
+- [ ] Pair with Aladdin Domain Lead for 2-hour deep dive on CDC patterns
+
+**Success criteria**: First PR merged; can trace a single trade through Aladdin CDC → Kafka → Redshift → Athena
+
+### Week 3-4: Service Ownership Ramp
+- [ ] Assigned to one domain (e.g., "Aladdin Data Domain")
+- [ ] Become on-call shadow (pair with on-call engineer through 1 incident)
+- [ ] Complete security training (AWS IAM, encryption, PII handling, FINRA CAT regulations)
+- [ ] Read Nomura compliance docs (SOC2 controls, HIPAA-equivalent for portfolio data)
+
+**Success criteria**: Can independently deploy hotfix to production (with 2-person review); understand SLA implications (Aladdin <100ms = business-critical)
+
+### Ongoing: Mentorship
+- **1:1 with manager**: Bi-weekly, 30min (track progress on domain expertise)
+- **Peer programming**: 1x/week with Aladdin Domain Lead (learn CDC internals, CDC edge cases)
+- **Tech talks**: Monthly brown-bag sessions (Data Mesh principles, Zero-ETL, Lake Formation governance)
+- **Career development**: 6-month career conversation (path to L3 → L4 Principal Engineer)
+
+---
+
+## 11.2 Team Onboarding Guide
 
 ### Day 1: Environment Setup
 - [ ] Create AWS IAM user and configure local credentials
@@ -1219,7 +2021,7 @@ Asset_Management_Client_Technology/
 
 ---
 
-## 10.2 Definition of Done (DoD) - Service Delivery Checklist
+## 11.2 Definition of Done (DoD) - Service Delivery Checklist
 
 Before any feature ships to production:
 
@@ -1259,7 +2061,26 @@ Before any feature ships to production:
 
 ---
 
-## 11. Glossary
+## 12. Fintech Glossary & Vendor Context
+
+### Understanding the Vendors
+
+| Term | Definition | Why It Matters to Asset Mgmt |
+|------|-----------|----------------------------|
+| **Aladdin (BlackRock)** | Integrated portfolio management + execution + risk system. Real-time, mission-critical. | Aladdin is the "system of record" for fund managers. Every trade, position, order lives in Aladdin. Our CDC must capture it <100ms or we lag. |
+| **Bloomberg Terminal** | Premium financial data/messaging platform ($20-40K/user/year). Publishes real-time prices, news, analysis. | Portfolio managers subscribe to Bloomberg for market prices. Bloomberg publishes equity closes 5pm EST, we ingest via ADX, available in Athena by 6pm. |
+| **FactSet** | Analytics + regulatory reporting + research database. Flat subscription (per seat or AUM). | Analysts use FactSet for EPS estimates, peer company data, sector analysis. We share FactSet via Redshift Data Share so they join with our internal forecasts in same query. |
+| **Change Data Capture (CDC)** | Captures every insert/update/delete in source system; streams changes to Kafka. | Enables real-time data sharing without batch delays. Aladdin trade occurs → CDC captures event <100ms → Kafka topic → our systems react. |
+| **Zero-Copy Data Sharing** | Consumer queries provider's data in-place without copying. Provider maintains data; consumer provides compute. | Instead of Nomura egressing Bloomberg data (expensive), Bloomberg subscriber (client) queries Bloomberg data directly via ADX. Zero egress charges. |
+| **Data Domain** | Logical grouping of related data from single source/vendor. Usually owned by dedicated team. | Aladdin domain (1 engineer), Bloomberg domain (1 engineer), FactSet domain (1 engineer). Each domain owns: ingestion, quality, SLA monitoring, governance. |
+| **GIPS** | Global Investment Performance Standards. Compliance framework for performance reporting. | Asset managers must report client returns in GIPS-compliant format annually. Requires reconciled data from Aladdin (holdings), Bloomberg (prices), internal cost accounting. |
+| **FINRA CAT** | Financial Industry Regulatory Authority Central Analysis & Reporting. Mandatory trade reporting. | Every equity trade must be reported to FINRA within 1 hour. Failure = fines. Our system captures Aladdin trades, feeds to Kafka, Step Functions builds CAT XML, transmits via SFTP to FINRA. |
+| **Medallion Architecture** | Data organization pattern: Bronze (raw) → Silver (cleaned) → Gold (analytics-ready). | Aladdin CDC events land in Bronze (raw Kafka); de-duplicated in Silver (RDS); stored as portfolio snapshots in Gold (S3 Parquet) for analytics. |
+| **Row-Level Security (RLS)** | Database feature filtering query results by user role / tenant. | Client-A queries Redshift → RLS rule → sees only their fund data. Client-B queries same table → sees only their fund data. Same table, different results. |
+
+---
+
+## 12.1 Technical Terminology (Reviewed Earlier)
 
 | Term | Definition |
 |------|-----------|
@@ -1276,7 +2097,7 @@ Before any feature ships to production:
 
 ---
 
-## 12. References & Learning Resources
+## 13. References & Learning Resources
 
 - [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/)
 - [Confluent Kafka Best Practices](https://docs.confluent.io/)
@@ -1291,7 +2112,7 @@ Before any feature ships to production:
 
 ---
 
-## 13. Contact & Support
+## 14. Contact & Support
 
 For questions or contributions:
 - **Technical Issues**: Open GitHub issue with label `bug` or `question`
