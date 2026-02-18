@@ -31,19 +31,19 @@ As the senior engineering leader for Client Technology and Integration, you are 
 **For Infrastructure & Cloud Platform Architecture**, see [CLOUD_PLATFORM_ARCHITECTURE.md](CLOUD_PLATFORM_ARCHITECTURE.md) for Nomura's "New Cloud" Platform with Terraform IaC, GitOps (FluxCD), LTGM observability stack, chaos engineering, and 12-month execution roadmap.
 
 **For Tier 2: REST API & GraphQL Layer**, see [REST_API_TIER_2.md](REST_API_TIER_2.md) for API-Led Connectivity architecture (SaaS/REST/GraphQL triple-threat model), rate limiting, caching strategies, security patterns, and integration roadmap with evaluations:
-- [Cycle 1 Baseline](EVALUATION_REST_API_TIER2_CYCLE_1.md) (8.13/10 - gaps identified)
-- [Cycle 2 Enhanced](EVALUATION_REST_API_TIER2_CYCLE_2.md) (8.88/10 - production-ready)
-- [Cycle 3 Final](EVALUATION_REST_API_TIER2_CYCLE_3_FINAL.md) (9.31/10 - unanimous approval ✅)
+- [Cycle 1 Baseline](evaluation/EVALUATION_REST_API_TIER2_CYCLE_1.md) (8.13/10 - gaps identified)
+- [Cycle 2 Enhanced](evaluation/EVALUATION_REST_API_TIER2_CYCLE_2.md) (8.88/10 - production-ready)
+- [Cycle 3 Final](evaluation/EVALUATION_REST_API_TIER2_CYCLE_3_FINAL.md) (9.31/10 - unanimous approval ✅)
 
 **For Tier 3: Async Tier (Apache Kafka / Event Mesh)**, see [KAFKA_STREAMING_TIER_3.md](KAFKA_STREAMING_TIER_3.md) for event-driven architecture, AsyncAPI contract-first design, MSK cluster topology, stream processing patterns, and real-time client data distribution with evaluations:
-- [Cycle 1 Baseline](EVALUATION_KAFKA_TIER3_CYCLE_1.md) (8.23/10 - baseline assessment; gaps identified)
-- [Cycle 2 Enhanced](EVALUATION_KAFKA_TIER3_CYCLE_2.md) (8.88/10 - production validation with load test proof)
-- [Cycle 3 Final](EVALUATION_KAFKA_TIER3_CYCLE_3_FINAL.md) (9.36/10 - 7-day live pilot; unanimous exceptional approval ✅)
+- [Cycle 1 Baseline](evaluation/EVALUATION_KAFKA_TIER3_CYCLE_1.md) (8.23/10 - baseline assessment; gaps identified)
+- [Cycle 2 Enhanced](evaluation/EVALUATION_KAFKA_TIER3_CYCLE_2.md) (8.88/10 - production validation with load test proof)
+- [Cycle 3 Final](evaluation/EVALUATION_KAFKA_TIER3_CYCLE_3_FINAL.md) (9.36/10 - 7-day live pilot; unanimous exceptional approval ✅)
 
 **For Tier 4: Strategic Client Onboarding Ecosystem** (NEW! Tier 4 Deployment - Mar 2026), see [STRATEGIC_CLIENT_ONBOARDING_ECOSYSTEM.md](STRATEGIC_CLIENT_ONBOARDING_ECOSYSTEM.md) for end-to-end automated institutional client onboarding (KYC → Account provisioning → Data entitlements). Combines Portal (React/Amplify), Salesforce Service Cloud, Kafka event mesh, Step Functions orchestration, AWS Data Exchange integration, Cognito federation, and LTGM observability stack. Reduces client onboarding from 12 weeks to 2-3 days with evaluations:
-- [Cycle 1 Baseline](EVALUATION_ONBOARDING_CYCLE_1.md) (8.18/10 - architecture validated; 8 production gaps identified)
-- [Cycle 2 Enhanced](EVALUATION_ONBOARDING_CYCLE_2.md) (8.88/10 - all gaps closed; 3-client PoC validated; load test passed)
-- [Cycle 3 Final](EVALUATION_ONBOARDING_CYCLE_3_FINAL.md) (9.60/10 - 7-day live pilot with Citadel + AQR; 143 users; 99.98% uptime; $825K revenue secured; **EXCEEDS TIER 3 BASELINE** ✅)
+- [Cycle 1 Baseline](evaluation/EVALUATION_ONBOARDING_CYCLE_1.md) (8.18/10 - architecture validated; 8 production gaps identified)
+- [Cycle 2 Enhanced](evaluation/EVALUATION_ONBOARDING_CYCLE_2.md) (8.88/10 - all gaps closed; 3-client PoC validated; load test passed)
+- [Cycle 3 Final](evaluation/EVALUATION_ONBOARDING_CYCLE_3_FINAL.md) (9.60/10 - 7-day live pilot with Citadel + AQR; 143 users; 99.98% uptime; $825K revenue secured; **EXCEEDS TIER 3 BASELINE** ✅)
 
 **For Advanced AWS Data Exchange Marketplace Tier**, see [AWS_DATA_EXCHANGE_MARKETPLACE_TIER.md](AWS_DATA_EXCHANGE_MARKETPLACE_TIER.md) for Levin-era zero-ETL patterns, multi-region disaster recovery, and production deployment procedures.
 
@@ -1763,7 +1763,31 @@ CREATE TABLE audit_log (
 ```
 Asset_Management_Client_Technology/
 ├── README.md                          # This file
-├── EVALUATION_CYCLE_1.md              # Training feedback logs
+├── evaluation/                        # All evaluation cycles & documentation
+│   ├── EVALUATION_CYCLE_1.md          # Training feedback cycle 1
+│   ├── EVALUATION_CYCLE_2.md
+│   ├── EVALUATION_CYCLE_3_FINAL.md
+│   ├── EVALUATION_CYCLE_4.md
+│   ├── EVALUATION_CYCLE_5.md
+│   ├── EVALUATION_CYCLE_6_FINAL_CERTIFICATION.md
+│   ├── EVALUATION_CYCLE_PHASE3_1.md
+│   ├── EVALUATION_CYCLE_PHASE3_2.md
+│   ├── EVALUATION_CYCLE_PHASE3_3_FINAL_CERTIFICATION.md
+│   ├── EVALUATION_CLOUD_PLATFORM_CYCLE_1.md
+│   ├── EVALUATION_CLOUD_PLATFORM_CYCLE_2.md
+│   ├── EVALUATION_CLOUD_PLATFORM_CYCLE_3_FINAL.md
+│   ├── EVALUATION_DIGITAL_LAYER_CYCLE_1.md
+│   ├── EVALUATION_DIGITAL_LAYER_CYCLE_2.md
+│   ├── EVALUATION_DIGITAL_LAYER_CYCLE_3_FINAL.md
+│   ├── EVALUATION_KAFKA_TIER3_CYCLE_1.md
+│   ├── EVALUATION_KAFKA_TIER3_CYCLE_2.md
+│   ├── EVALUATION_KAFKA_TIER3_CYCLE_3_FINAL.md
+│   ├── EVALUATION_ONBOARDING_CYCLE_1.md
+│   ├── EVALUATION_ONBOARDING_CYCLE_2.md
+│   ├── EVALUATION_ONBOARDING_CYCLE_3_FINAL.md
+│   ├── EVALUATION_REST_API_TIER2_CYCLE_1.md
+│   ├── EVALUATION_REST_API_TIER2_CYCLE_2.md
+│   └── EVALUATION_REST_API_TIER2_CYCLE_3_FINAL.md
 ├── docs/
 │   ├── ADR/                           # Architecture Decision Records
 │   ├── runbooks/                      # Operational procedures
