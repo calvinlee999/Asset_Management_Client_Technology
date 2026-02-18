@@ -27,6 +27,9 @@ As the senior engineering leader for Client Technology and Integration, you are 
 - **Vendor consolidation** through unified data mesh (Aladdin, Bloomberg, FactSet)
 
 ### Reference Documentation
+
+**For Infrastructure & Cloud Platform Architecture**, see [CLOUD_PLATFORM_ARCHITECTURE.md](CLOUD_PLATFORM_ARCHITECTURE.md) for Nomura's "New Cloud" Platform with Terraform IaC, GitOps (FluxCD), LTGM observability stack, chaos engineering, and 12-month execution roadmap.
+
 **For Advanced AWS Data Exchange Marketplace Tier**, see [AWS_DATA_EXCHANGE_MARKETPLACE_TIER.md](AWS_DATA_EXCHANGE_MARKETPLACE_TIER.md) for Levin-era zero-ETL patterns, multi-region disaster recovery, and production deployment procedures.
 
 ---
