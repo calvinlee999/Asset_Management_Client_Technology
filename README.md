@@ -35,6 +35,11 @@ As the senior engineering leader for Client Technology and Integration, you are 
 - [Cycle 2 Enhanced](EVALUATION_REST_API_TIER2_CYCLE_2.md) (8.88/10 - production-ready)
 - [Cycle 3 Final](EVALUATION_REST_API_TIER2_CYCLE_3_FINAL.md) (9.31/10 - unanimous approval ✅)
 
+**For Tier 3: Async Tier (Apache Kafka / Event Mesh)**, see [KAFKA_STREAMING_TIER_3.md](KAFKA_STREAMING_TIER_3.md) for event-driven architecture, AsyncAPI contract-first design, MSK cluster topology, stream processing patterns, and real-time client data distribution with evaluations:
+- [Cycle 1 Baseline](EVALUATION_KAFKA_TIER3_CYCLE_1.md) (8.23/10 - baseline assessment; gaps identified)
+- [Cycle 2 Enhanced](EVALUATION_KAFKA_TIER3_CYCLE_2.md) (8.88/10 - production validation with load test proof)
+- [Cycle 3 Final](EVALUATION_KAFKA_TIER3_CYCLE_3_FINAL.md) (9.36/10 - 7-day live pilot; unanimous exceptional approval ✅)
+
 **For Advanced AWS Data Exchange Marketplace Tier**, see [AWS_DATA_EXCHANGE_MARKETPLACE_TIER.md](AWS_DATA_EXCHANGE_MARKETPLACE_TIER.md) for Levin-era zero-ETL patterns, multi-region disaster recovery, and production deployment procedures.
 
 ---
