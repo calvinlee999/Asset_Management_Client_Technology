@@ -1631,6 +1631,102 @@ Ownership includes:
 
 ---
 
+## Section 14: Performance SLAs & Benchmarks
+
+### 14.1 Target Latency by Component
+
+| Component | Operation | p95 Latency | p99 Latency | SLA | Notes |
+|-----------|-----------|-------------|-------------|-----|-------|
+| **API Authorization** | SigV4 validation + subscription check | 30ms | 50ms | 99.9% | Cache subscription status → refresh hourly |
+| **Redshift Query** | SELECT funds table (1K rows) | 200ms | 350ms | 99.95% | Partition pruning on partition key |
+| **S3 GetObject** | Single object read from Gold layer | 100ms | 150ms | 99.9% | S3 in same region as Redshift |
+| **CrossAccount S3 Access** | IAM assume role + read | 150ms | 250ms | 99.9% | STS token cached in Lambda |
+| **Lake Formation RLS** | Row filtering on 10M row table | 50ms | 75ms | 99.95% | In-memory filter with B-tree index |
+| **ADX Grant** | IAM policy attachment via Step Functions | 2-5s | 10s | 99% (async) | Separate from query path |
+| **End-to-End API** | Client → API Gateway → Authorizer → Lambda → Athena | 400ms | 600ms | 99.5% | p95 target: <500ms SLA |
+
+### 14.2 Throughput Targets
+- Concurrent API Clients: 10,000+ (API Gateway limit 20K)
+- Queries/Second: 1,000 QPS (Athena: 100 concurrent max; queue via SQS)
+- Revisions/Day: 10 (ADX limit: 5 rev/min = 7,200/day)
+- Entitlements/Hour: 100 new clients (Step Functions: 100 parallel)
+
+---
+
+## Section 15: Strategic Risk Assessment & Mitigation
+
+### 15.1 Risk: Vendor Lock-In (AWS Proprietary)
+
+**Mitigation**: "Petabyte-Scale Portability"
+- All data stored in S3 (standard format)
+- Export via AWS Glue → Parquet (open format, readable by Azure/GCP/on-prem)
+- Contract clause: "90-day data portability guarantee upon termination"
+- Strategic advantage: Competitors locked-in premise-managed silos; Nomura data is portable
+
+### 15.2 Risk: Data Breach via Compromised Credentials
+
+**Mitigation**: Defense-in-Depth (5 layers)
+1. **AWS IAM**: MFA on all logins, credential rotation daily, STS tokens (1hr expiry)
+2. **Lake Formation RLS**: Each client sees ONLY their funds (row-level filtering)
+3. **Encryption**: TLS 1.3 in-transit, S3 SSE-KMS at-rest, quarterly key rotation
+4. **Network**: VPC endpoints (no internet routing), security groups, private subnets
+5. **Detection**: GuardDuty + Security Hub with 60-second auto-disable for compromised roles
+
+**Result**: Even if one layer breached, cross-tenant data remains inaccessible
+
+### 15.3 Risk: Data Quality Issues (Corrupted Revisions)
+
+**Mitigation**: Multi-Stage Quality Framework
+- Pre-publication: Row count, schema, statistical anomaly checks
+- Staged publication: DRAFT → TESTING (internal only) → CANARY (5% clients) → PRODUCTION
+- Auto-rollback: If >5% clients report errors, revert to previous revision
+- Post-incident: Root cause + corrected revision within 1 hour
+
+---
+
+## Section 16: Customer Support Troubleshooting Guide
+
+### Quick-Start Flowchart (Issue: "Can't query Nomura data")
+1. **Check 1**: Do you see "nomura_external_data" in Athena?
+   - NO → S3 grant pending; wait 15 min + refresh data source
+   - YES → Check 2
+2. **Check 2**: Can you list S3 bucket?
+   - NO → IAM permission missing; contact AWS admin + Nomura support
+   - YES → Check 3
+3. **Check 3**: Test Athena query: `SELECT COUNT(*) FROM nomura_esg_insights LIMIT 1`
+   - SUCCESS ✅ → Proceed to dashboard setup
+   - "Table not found" → Refresh Glue catalog manually
+   - Syntax error → Verify query format
+
+### Tier 2 Escalation (Nomura Support)
+- S3 access granted but 0 rows returned → Check if data published today
+- Athena error "Access Denied" → Check Lake Formation RLS logs
+- Multi-region failover active → Expect 1-hour stale data from secondary region
+- SLA for Tier 2 response: <2 hours
+
+---
+
+## Section 17: SOC2 & GDPR Compliance Checklist
+
+### SOC2 Type II Status (Annual Audit)
+- ✅ CC6.1: Written security policy (see Section 15: Defense-in-Depth)
+- ✅ A1.2: Data access authorization via Lake Formation RLS + IAM
+- ✅ C1.2: Data encrypted in transit (TLS 1.3) + at-rest (SSE-KMS)
+- ✅ C1.3: Access controls via MFA + Secrets Manager rotation
+- ✅ P5.3: Incident response procedures documented (section 15.3)
+- ✅ P6.2: Continuous monitoring via GuardDuty + CloudWatch alerts
+
+### GDPR Compliance (Data Subject Rights)
+| Right | Timeline | Implementation |
+|------|----------|-----------------|
+| Right to Access | 30 days | Export client data to Parquet via Glue |
+| Right to Erasure | 30 days | Mark client data "deleted" in Lake Formation RLS |
+| Right to Portability | 30 days | Glue job exports to client's S3 bucket (Parquet) |
+| Right to Object | Immediate | ADX data product marked "PAUSED" for client |
+| Breach Notification | 72 hours | SNS alert + regulatory notification |
+
+---
+
 ## References & Further Reading
 
 - Mihir Popat Medium: [Unlocking the Power of Data with AWS Data Exchange](https://mihirpopat.medium.com/)
