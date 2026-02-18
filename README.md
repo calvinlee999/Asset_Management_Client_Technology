@@ -790,6 +790,294 @@ public class NAVProducer {
 
 ---
 
+## 9.4 Resilience Patterns & Disaster Recovery
+
+### Circuit Breaker Pattern (for Kafka Producer)
+
+```java
+@Component
+public class ResilientKafkaProducer {
+  
+  private final KafkaTemplate<String, NAVUpdateEvent> kafkaTemplate;
+  private final CircuitBreaker circuitBreaker;
+  private static final Logger logger = LoggerFactory.getLogger(ResilientKafkaProducer.class);
+  
+  public ResilientKafkaProducer(KafkaTemplate<String, NAVUpdateEvent> kafkaTemplate) {
+    this.kafkaTemplate = kafkaTemplate;
+    // Circuit breaker: 5 failures → OPEN (reject) for 30sec, then try HALF_OPEN
+    this.circuitBreaker = CircuitBreaker.of("kafka-producer", 
+      CircuitBreakerConfig.custom()
+        .failureThreshold(5)
+        .slowCallRateThreshold(50)
+        .slowCallDurationThreshold(Duration.ofSeconds(2))
+        .waitDurationInOpenState(Duration.ofSeconds(30))
+        .build());
+  }
+
+  public void publishNAVWithResilience(String fundId, BigDecimal nav) {
+    try {
+      circuitBreaker.executeSupplier(() -> {
+        kafkaTemplate.send("asset-management.nav.intraday", fundId, 
+          NAVUpdateEvent.builder()
+            .fundId(fundId)
+            .nav(nav)
+            .eventId(UUID.randomUUID().toString())
+            .build());
+        return true;
+      });
+    } catch (CircuitBreakerOpenException | CallNotPermittedException ex) {
+      logger.warn("Circuit breaker OPEN - buffering event locally for retry");
+      // Buffer event to local queue for later retry
+      bufferEventForRetry(fundId, nav);
+    }
+  }
+  
+  private void bufferEventForRetry(String fundId, BigDecimal nav) {
+    // Persist to DynamoDB or local RocksDB for eventual consistency
+    localBuffer.put(fundId, nav);
+  }
+}
+```
+
+### Bulkhead Pattern (Thread Pool Isolation)
+
+```java
+@Configuration
+public class ThreadPoolConfig {
+  
+  @Bean("kafkaExecutor")
+  public ThreadPoolTaskExecutor kafkaExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(10);
+    executor.setMaxPoolSize(20);
+    executor.setQueueCapacity(500);
+    executor.setThreadNamePrefix("kafka-");
+    executor.setWaitForTasksToCompleteOnShutdown(true);
+    executor.setAwaitTerminationSeconds(60);
+    executor.initialize();
+    return executor;
+  }
+  
+  @Bean("apiExecutor")
+  public ThreadPoolTaskExecutor apiExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(50);
+    executor.setMaxPoolSize(100);
+    executor.setQueueCapacity(5000);
+    executor.setThreadNamePrefix("api-");
+    executor.initialize();
+    return executor;
+  }
+}
+
+// Usage: Kafka consumers use dedicated thread pool → won't starve API requests
+@Service
+public class NAVConsumer {
+  @Async("kafkaExecutor")
+  public void consumeNAVUpdate(NAVUpdateEvent event) {
+    // Isolated thread pool ensures API latency unaffected
+  }
+}
+```
+
+### Disaster Recovery: RTO & RPO
+
+| Scenario | RTO (Recovery Time) | RPO (Recovery Point) | Strategy |
+|----------|-------------------|------------------|----------|
+| **S3 data corruption** | < 1 hour | < 1 hour | S3 versioning; automated restore from backup |
+| **Kafka broker failure** | < 15 min | 0 minute | Multi-AZ deployment; topic replication factor = 3 |
+| **Lambda timeout** | < 5 min | 0 minute | Automatic retry; DLQ for manual intervention |
+| **Salesforce API down** | < 2 hours | 1 day | Queue provisioning requests; retry next day |
+| **ADX service down** | < 4 hours | 1 hour | Fallback to REST API; notify clients of degradation |
+
+**Failover Procedure**:
+```bash
+# If primary Kafka cluster fails, promote standby
+aws msk update-cluster --cluster-arn <PRIMARY> --replication-info FailureZone=us-east-1b
+# Redirect producers to standby broker list (via feature flag)
+# ETA: 15 minutes
+```
+
+---
+
+### Advanced Java/Spring Boot Production Tuning
+
+#### Virtual Threads (Java 21+) for High Concurrency
+
+```java
+// Spring Boot 3.2+ with Virtual Threads
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+  
+  @Override
+  public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+    // Virtual threads: lightweight, non-blocking, scale to 100K+
+    configurer.setTaskExecutor(Executors.newVirtualThreadPerTaskExecutor());
+  }
+}
+
+// Usage: Each HTTP request runs on a virtual thread (not platform thread)
+// Benefit: 100K+ concurrent requests with minimal memory
+```
+
+#### GC Tuning for Low-Latency APIs
+
+```bash
+# Launch API with G1GC (default in Java 11+, optimized for 99% p99 latency)
+java -server \
+  -XX:+UseG1GC \
+  -XX:MaxGCPauseMillis=100 \                # Target: keep GC pauses <100ms
+  -XX:+ParallelRefProcEnabled \              # Parallel reference processing
+  -XX:+UnlockDiagnosticVMOptions \
+  -XX:G1SummarizeRSetStatsPeriod=1 \
+  -Xms4g -Xmx4g \
+  -jar fund-api-service.jar
+```
+
+#### OpenTelemetry Integration for Distributed Tracing
+
+```java
+@Configuration
+public class TelemetryConfig {
+  
+  @Bean
+  public OpenTelemetry openTelemetry() {
+    SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
+      .addSpanProcessor(JaegerThriftSpanExporter.builder()
+        .setAgentHost("jaeger-collector")
+        .setAgentPort(6831)
+        .build().getSpanProcessor())
+      .build();
+    
+    return OpenTelemetrySdk.builder()
+      .setTracerProvider(tracerProvider)
+      .buildAndRegisterGlobal();
+  }
+}
+
+// Auto-instrument with Spring Boot Starter
+// dependency: io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter
+// Every HTTP request, database call, Kafka publish gets traced
+```
+
+---
+
+### Incident Severity Levels & Response SLAs
+
+| Severity | Definition | Example | First Response | Resolution Target |
+|----------|-----------|---------|-----------------|-------------------|
+| **P1 (Critical)** | Entire service down or data loss risk | All APIs returning 500 | 5 minutes | 15 minutes (RTO) |
+| **P2 (High)** | Feature degraded; >50% clients impacted | API p95 > 5s | 15 minutes | 1 hour |
+| **P3 (Medium)** | Minor feature broken; <10% impacted | Dashboard slow but functional | 1 hour | 4 hours |
+| **P4 (Low)** | Documentation issue or cosmetic bug | Typo in API docs | 2 business days | - |
+
+**On-Call Escalation**:
+- P1 → Page Principal Engineer (immediately) → VP Engineering (if unfixed after 30 min)
+- P2 → Slack #incident-channel → escalate if unresolved after 1 hour
+- P3/P4 → Backlog ticket; add to next sprint
+
+---
+
+### Organizational Scaling Plan
+
+#### Hiring & Ramp Timeline (0 → 12 Engineers)
+
+| Phase | Timeline | Hires | Key Roles | Milestones |
+|-------|----------|-------|-----------|-----------|
+| **Foundation** | Month 1-3 | 2 Principal Engrs + 1 Senior | API architect, Data engineer | V0 architecture; single service MVP |
+| **Core MVP** | Month 4-6 | +3 mid-level engineers | Backend, Kafka, DevOps | Multi-modal foundation; K8s deployment |
+| **Scale** | Month 7-9 | +2 Principal Architects + 4 mid-level | Data platform, Security, SRE | Marketplace launch; 3+ services |
+| **Production** | Month 10-12 | [Reserve funding] | Backup hires; intern rotation | 80% client adoption; stable platform |
+
+**Hiring Criteria**:
+- **Principal roles**: 8+ years, led teams of 5+, shipped to 1000+ users
+- **Mid-level**: 3-5 years, shipped 2+ microservices, AWS/GCP experience
+- **Junior**: 0-2 years, computer science degree, willingness to learn
+
+---
+
+#### Leveling & Promotion Framework
+
+| Level | Title | Comp Range | Responsibilities | Promotion Criteria |
+|-------|-------|------------|------------------|-------------------|
+| **L3** | Senior Software Engineer | $200-250K | Own service E2E; mentor 1-2 L2s | Led design of new service; mentored 2 L2s → L3 |
+| **L4** | Staff Engineer | $250-350K | Drive architectural decisions; own roadmap for domain | Led company-wide initiative (dataflow layer); published 2 ADRs |
+| **L5** | Principal Engineer | $350-500K | Set technical vision; manage hiring for function | Built one of the 4 tiers solo; mentor 2+ L4s |
+| **L6** | Distinguished Engineer (VP) | $500K+ | VP-level; sets technical direction for company | Led organizational transformation (push → pull model); 5+ L5s report |
+
+**Promotion Process**:
+1. Manager + 2 senior peers write promotion packet (criteria met?)
+2. Engineering leadership review (blind comparison against peers)
+3. Compensation committee approves
+4. Promotion announcement + 5% raise (or market correction)
+
+---
+
+#### Database Schema (Entity Relationship Diagram)
+
+```sql
+-- Core Entities for Multi-Tenant NAV Management
+
+CREATE TABLE funds (
+  fund_id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL,          -- Partition key for multi-tenancy
+  fund_name VARCHAR(255) NOT NULL,
+  fund_type ENUM ('Equity', 'Fixed Income', 'Private Credit'),
+  inception_date DATE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX (tenant_id, fund_id) -- Composite for fast tenant-scoped queries
+);
+
+CREATE TABLE nav_history (
+  nav_id UUID PRIMARY KEY,
+  fund_id UUID NOT NULL,
+  tenant_id UUID NOT NULL,          -- Denormalized for query performance
+  nav_value DECIMAL(19,2) NOT NULL,
+  nav_date DATE NOT NULL,
+  data_source ENUM ('Official', 'Preliminary', 'Estimate'),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (fund_id) REFERENCES funds(fund_id),
+  INDEX (tenant_id, fund_id, nav_date) -- Partition pruning queries
+);
+
+CREATE TABLE client_entitlements (
+  entitlement_id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL,
+  client_aws_account_id VARCHAR(12) NOT NULL,  -- For ADX access
+  dataset_ids ARRAY<VARCHAR(100)> NOT NULL,   -- Which data products
+  contract_end_date DATE NOT NULL,
+  salesforce_record_id VARCHAR(18) NOT NULL,
+  status ENUM ('Active', 'Expired', 'Revoked'),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX (tenant_id, client_aws_account_id)
+);
+
+CREATE TABLE audit_log (
+  log_id UUID PRIMARY KEY,
+  tenant_id UUID NOT NULL,
+  entity_type VARCHAR(50) NOT NULL,
+  entity_id UUID NOT NULL,
+  action ENUM ('CREATE', 'UPDATE', 'DELETE'),
+  changed_by VARCHAR(255) NOT NULL,
+  changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  old_values JSONB,
+  new_values JSONB,
+  INDEX (tenant_id, entity_type, entity_id, changed_at)
+);
+```
+
+**Schema Design Principles**:
+- ✅ **Tenant-id as partition key**: Fast isolation per client
+- ✅ **Denormalized nav_value for queries**: Avoid joins on hot path
+- ✅ **Composite indexes**: (tenant_id, fund_id) enables partition pruning
+- ✅ **JSONB audit trail**: Compliance-ready; supports temporal queries
+- ✅ **No cross-tenant queries**: Prevents data leaks
+
+---
+
+
+
 ## 10. Getting Started
 
 ### Prerequisites
