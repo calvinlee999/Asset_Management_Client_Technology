@@ -1516,6 +1516,7 @@ With DAM + Salesforce + Seismic analytics:
 | **Role** | ED, Head of Client Technology — Nomura Asset Management International |
 | **Purpose** | Business partnership fluency and panel preparation |
 | **Technical architecture** | See main [README.md](README.md) |
+| **BIAN Framework** | [BIAN_FRAMEWORK_ASSET_MANAGEMENT.md](BIAN_FRAMEWORK_ASSET_MANAGEMENT.md) — service domain architecture and interview vocabulary |
 | **Version** | 3.0 — Enhanced with Content Distribution, DAM, AI+DAM+Salesforce Integration |
 | **Last updated** | February 2026 |
 

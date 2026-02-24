@@ -47,6 +47,13 @@ As the senior engineering leader for Client Technology and Integration, you are 
 
 **For Advanced AWS Data Exchange Marketplace Tier**, see [AWS_DATA_EXCHANGE_MARKETPLACE_TIER.md](AWS_DATA_EXCHANGE_MARKETPLACE_TIER.md) for Levin-era zero-ETL patterns, multi-region disaster recovery, and production deployment procedures.
 
+**For BIAN Framework: Asset Management Business Process Architecture**, see [BIAN_FRAMEWORK_ASSET_MANAGEMENT.md](BIAN_FRAMEWORK_ASSET_MANAGEMENT.md) for the complete BIAN service domain mapping — Customer & Party Management, Sales & Distribution, Client Onboarding & KYC, Investment Portfolio Management, Trade Execution & Settlement, Client Reporting & Performance, Sales Enablement & Advisor Distribution, and Data & Integration Architecture — with platform-to-BIAN mapping, end-to-end business process flows (prospect-to-first-report, advisor engagement-to-fund-placement, AI DDQ agent service interaction chain), and interview talking points using BIAN vocabulary for Kathleen and Stuart:
+- [Evaluation Cycle 1](evaluation/EVALUATION_BIAN_FRAMEWORK_CYCLE_1.md) (Baseline assessment — gaps identified)
+- [Evaluation Cycle 2](evaluation/EVALUATION_BIAN_FRAMEWORK_CYCLE_2.md) (Enhanced — service domain mastery validated)
+- [Evaluation Cycle 3 Final](evaluation/EVALUATION_BIAN_FRAMEWORK_CYCLE_3_FINAL_CERTIFICATION.md) (Final certification ✅)
+
+**For Business Partnership Guide** (Kathleen & Stuart panel preparation), see [BUSINESS_PARTNERSHIP_README.md](BUSINESS_PARTNERSHIP_README.md) for the 20-section business partnership playbook — translating the technical platform into client experience, distribution enablement, and measurable business outcomes including AI Digital Agent, Content Distribution, DAM, and Salesforce integration.
+
 ---
 
 ## 1.5 The Integrated Investment Data Mesh
