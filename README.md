@@ -54,6 +54,10 @@ As the senior engineering leader for Client Technology and Integration, you are 
 
 **For Business Partnership Guide** (Kathleen & Stuart panel preparation), see [BUSINESS_PARTNERSHIP_README.md](BUSINESS_PARTNERSHIP_README.md) for the 20-section business partnership playbook — translating the technical platform into client experience, distribution enablement, and measurable business outcomes including AI Digital Agent, Content Distribution, DAM, and Salesforce integration.
 
+**For Nomura Client Insight Engine (NCIE)** (Kathleen & Stuart interview case study), see [NOMURA_CLIENT_INSIGHT_ENGINE.md](NOMURA_CLIENT_INSIGHT_ENGINE.md) for the AWS AI-powered client feedback orchestration platform — serverless architecture (Bedrock/Claude, Step Functions, Comprehend, OpenSearch) that converts portal feedback and AI Digital Agent transcripts into ranked product backlogs. 3-cycle self-reinforcement evaluation: [Cycle 1](evaluation/EVALUATION_NCIE_CYCLE_1.md) | [Cycle 2](evaluation/EVALUATION_NCIE_CYCLE_2.md) | [Cycle 3 — Certified 9.88/10 ✅](evaluation/EVALUATION_NCIE_CYCLE_3_FINAL_CERTIFICATION.md).
+
+**For Tier 1: Digital Layer & Salesforce Integration** (Shaw, Stuart & Kathleen preparation), see [DIGITAL_LAYER_SALESFORCE_INTEGRATION.md](DIGITAL_LAYER_SALESFORCE_INTEGRATION.md) for the React/Amplify/PowerBI/QuickSight/Athena frontend stack and Salesforce Distribution Intelligence Platform — covering Sales Cloud, Service Cloud, AWS-Salesforce Zero-Copy, LWC-embedded dashboards, Seismic for Agentforce, and EventBridge-driven onboarding automation.
+
 ---
 
 ## 1.5 The Integrated Investment Data Mesh

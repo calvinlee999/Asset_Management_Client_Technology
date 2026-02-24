@@ -1517,6 +1517,8 @@ With DAM + Salesforce + Seismic analytics:
 | **Purpose** | Business partnership fluency and panel preparation |
 | **Technical architecture** | See main [README.md](README.md) |
 | **BIAN Framework** | [BIAN_FRAMEWORK_ASSET_MANAGEMENT.md](BIAN_FRAMEWORK_ASSET_MANAGEMENT.md) — service domain architecture and interview vocabulary |
+| **NCIE Case Study** | [NOMURA_CLIENT_INSIGHT_ENGINE.md](NOMURA_CLIENT_INSIGHT_ENGINE.md) — AWS AI feedback orchestration platform (Bedrock, Step Functions, Comprehend, OpenSearch) for Kathleen & Stuart panel |
+| **Tier 1 Digital Layer** | [DIGITAL_LAYER_SALESFORCE_INTEGRATION.md](DIGITAL_LAYER_SALESFORCE_INTEGRATION.md) — React/Amplify/PowerBI/QuickSight + Salesforce Distribution Intelligence Platform for Shaw, Stuart & Kathleen |
 | **Version** | 3.0 — Enhanced with Content Distribution, DAM, AI+DAM+Salesforce Integration |
 | **Last updated** | February 2026 |
 
