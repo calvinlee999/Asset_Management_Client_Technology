@@ -1520,6 +1520,7 @@ With DAM + Salesforce + Seismic analytics:
 | **NCIE Case Study** | [NOMURA_CLIENT_INSIGHT_ENGINE.md](NOMURA_CLIENT_INSIGHT_ENGINE.md) — AWS AI feedback orchestration platform (Bedrock, Step Functions, Comprehend, OpenSearch) for Kathleen & Stuart panel |
 | **Tier 1 Digital Layer** | [DIGITAL_LAYER_SALESFORCE_INTEGRATION.md](DIGITAL_LAYER_SALESFORCE_INTEGRATION.md) — React/Amplify/PowerBI/QuickSight + Salesforce Distribution Intelligence Platform for Shaw, Stuart & Kathleen |
 | **AI Chatbot + CRM Cross-Sell** | [AI_CHATBOT_CRM_SALESCLOUD_INTEGRATION.md](AI_CHATBOT_CRM_SALESCLOUD_INTEGRATION.md) — Agentforce + Bedrock + SageMaker JumpStart AI chatbot for RM content retrieval, cross-sell intelligence, and DAM integration (Kathleen, Stuart & Shaw) — [Eval 3 Certified 9.84/10 ✅](evaluation/EVALUATION_AI_CHATBOT_CRM_CYCLE_3_FINAL_CERTIFICATION.md) |
+| **NAIM Support Agent Co-Pilot** | [SUPPORT_AGENT_COPILOT_NAIM.md](SUPPORT_AGENT_COPILOT_NAIM.md) — Service Cloud LWC + Bedrock Agents + SageMaker JumpStart + Comprehend PII masking. Internal Support Co-Pilot: Context-Aware Troubleshooting, Historical Ticket Synthesis, Sentiment-Driven Triage (Kathleen, Stuart & Shaw) — [Eval 3 Certified 9.87/10 ✅](evaluation/EVALUATION_NAIM_CYCLE_3_FINAL_CERTIFICATION.md) |
 | **Version** | 3.0 — Enhanced with Content Distribution, DAM, AI+DAM+Salesforce Integration |
 | **Last updated** | February 2026 |
 
