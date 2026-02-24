@@ -1519,6 +1519,7 @@ With DAM + Salesforce + Seismic analytics:
 | **BIAN Framework** | [BIAN_FRAMEWORK_ASSET_MANAGEMENT.md](BIAN_FRAMEWORK_ASSET_MANAGEMENT.md) — service domain architecture and interview vocabulary |
 | **NCIE Case Study** | [NOMURA_CLIENT_INSIGHT_ENGINE.md](NOMURA_CLIENT_INSIGHT_ENGINE.md) — AWS AI feedback orchestration platform (Bedrock, Step Functions, Comprehend, OpenSearch) for Kathleen & Stuart panel |
 | **Tier 1 Digital Layer** | [DIGITAL_LAYER_SALESFORCE_INTEGRATION.md](DIGITAL_LAYER_SALESFORCE_INTEGRATION.md) — React/Amplify/PowerBI/QuickSight + Salesforce Distribution Intelligence Platform for Shaw, Stuart & Kathleen |
+| **AI Chatbot + CRM Cross-Sell** | [AI_CHATBOT_CRM_SALESCLOUD_INTEGRATION.md](AI_CHATBOT_CRM_SALESCLOUD_INTEGRATION.md) — Agentforce + Bedrock + SageMaker JumpStart AI chatbot for RM content retrieval, cross-sell intelligence, and DAM integration (Kathleen, Stuart & Shaw) — [Eval 3 Certified 9.84/10 ✅](evaluation/EVALUATION_AI_CHATBOT_CRM_CYCLE_3_FINAL_CERTIFICATION.md) |
 | **Version** | 3.0 — Enhanced with Content Distribution, DAM, AI+DAM+Salesforce Integration |
 | **Last updated** | February 2026 |
 

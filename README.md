@@ -58,6 +58,8 @@ As the senior engineering leader for Client Technology and Integration, you are 
 
 **For Tier 1: Digital Layer & Salesforce Integration** (Shaw, Stuart & Kathleen preparation), see [DIGITAL_LAYER_SALESFORCE_INTEGRATION.md](DIGITAL_LAYER_SALESFORCE_INTEGRATION.md) for the React/Amplify/PowerBI/QuickSight/Athena frontend stack and Salesforce Distribution Intelligence Platform — covering Sales Cloud, Service Cloud, AWS-Salesforce Zero-Copy, LWC-embedded dashboards, Seismic for Agentforce, and EventBridge-driven onboarding automation.
 
+**For AI Chatbot + CRM Sales Cloud Cross-Selling** (Kathleen, Stuart & Shaw deep-dive), see [AI_CHATBOT_CRM_SALESCLOUD_INTEGRATION.md](AI_CHATBOT_CRM_SALESCLOUD_INTEGRATION.md) for the Salesforce Agentforce + Amazon Bedrock + SageMaker JumpStart architecture enabling RM content retrieval in <60 seconds, AI-powered cross-sell signal detection, and DAM-to-Salesforce compliance-first content delivery. Includes Bedrock vs. JumpStart decision framework, Seismic content taxonomy, FSC data model, and 3-cycle evaluation: [Cycle 1](evaluation/EVALUATION_AI_CHATBOT_CRM_CYCLE_1.md) | [Cycle 2](evaluation/EVALUATION_AI_CHATBOT_CRM_CYCLE_2.md) | [Cycle 3 — Certified 9.84/10 ✅](evaluation/EVALUATION_AI_CHATBOT_CRM_CYCLE_3_FINAL_CERTIFICATION.md).
+
 ---
 
 ## 1.5 The Integrated Investment Data Mesh
@@ -370,6 +372,42 @@ RM logs into Salesforce via OKTA
 | **High Licensing Costs** | Session-based pricing + embed | QuickSight readers $2/user/mo; Power BI embedded | 60% reduction in BI spend |
 | **Fragmented UX** | Custom branding/themes | Nomura colors, logos, fonts in embed layer | User adoption +25%; NPS +10 |
 | **Manual Provisioning** | AWS CloudFormation + Power BI APIs | terraform deploys dashboards | New dashboard live in <2 hours (vs. 3-5 days) |
+
+---
+
+#### Salesforce Ecosystem: Sales Cloud vs. Service Cloud Domain Roles at Nomura
+
+The Digital Layer is not only web and mobile dashboards — it includes Salesforce Financial Services Cloud as the CRM intelligence and orchestration layer. Two Salesforce clouds serve complementary roles:
+
+| Capability Domain | Sales Cloud (Distribution Intelligence) | Service Cloud (Operational Excellence) |
+|---|---|---|
+| **Primary users** | RMs, Wholesalers, Distribution heads | Client Service reps, Operations, Fund Accounting support |
+| **Core object** | Account, Opportunity, Campaign | Case, Entitlement, Knowledge Article |
+| **AI layer** | Einstein Relationship Insights; Einstein Opportunity Scoring; Agentforce content surfacing | Einstein Case Classification; Agentforce case triage; Knowledge Base deflection |
+| **Cross-sell signal** | SageMaker cross-sell model → Suggested Opportunity | Service issue pattern → retention alert to RM |
+| **Content integration** | Seismic LiveSend — engagement tracked per asset, per contact | Seismic Knowledge — compliance-approved FAQ and fund doc retrieval |
+| **EventBridge role** | Closed-Won triggers full client provisioning (Vermilion + Portal + PowerBI) | Case-Resolved triggers satisfaction survey + NCIE feedback loop |
+| **Key Salesforce feature** | Activity Capture (auto-log Outlook/Calendar) | Entitlement Management (SLA clock per client tier) |
+
+#### Salesforce + AWS Integration Blueprint (Tier 1)
+
+```
+AWS Athena Gold Layer (Snowflake/Redshift Spectrum)
+        ↕ Zero-Copy (Salesforce Data Cloud — no ETL)
+Salesforce Data Cloud (unified client profile + portfolio data)
+        ↓ Segment activation
+Agentforce: context-aware RM assistant (content + cross-sell)
+        ↓ Seismic Asset API (approved content retrieval)
+Seismic LiveSend (email + portal delivery + engagement tracking)
+        ↓ EventBridge Pipe (Seismic engagement event → AWS)
+EventBridge → Lambda → Salesforce: update Opportunity engagement score
+        ↓ Einstein Opportunity Scoring
+Suggested Tasks in RM's Salesforce Today page (cross-sell next action)
+```
+
+**Interview clincher (Stuart and Kathleen):** *"The distribution stack is not Salesforce or AWS — it is Salesforce and AWS, using Zero-Copy so the data never moves, and EventBridge so every RM action and client signal is instantly available across both platforms. The result is a closed loop: analysis → content → delivery → signal → analysis. For the RM, it feels like the system knows what they need before they ask. That is a Distribution Intelligence Platform."*
+
+> **Deep-dive reference:** The AI layer powering Agentforce content retrieval and cross-sell prediction is fully specified in [AI_CHATBOT_CRM_SALESCLOUD_INTEGRATION.md](AI_CHATBOT_CRM_SALESCLOUD_INTEGRATION.md) — including Amazon Bedrock vs. SageMaker JumpStart decision framework, Seismic content taxonomy, Bedrock Agents action group specification, and SageMaker Pipelines fine-tuning pipeline.
 
 ---
 
