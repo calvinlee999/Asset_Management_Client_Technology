@@ -28,6 +28,8 @@
 16. [Early Alignment: Business Intent & Technical Constraints](#16-early-alignment-business-intent--technical-constraints)
 17. [Product-Technology Collaboration Model](#17-product-technology-collaboration-model)
 18. [Vendor Application Evaluation Framework](#18-vendor-application-evaluation-framework)
+19. [Asset Management Content Distribution & Digital Asset Management](#19-asset-management-content-distribution--digital-asset-management)
+20. [AI Chatbot + DAM + Salesforce Integration Architecture](#20-ai-chatbot--dam--salesforce-integration-architecture)
 
 ---
 
@@ -1134,6 +1136,377 @@ Phase 5 — Decision & Documentation (Week 11)
 
 ---
 
+## 19. Asset Management Content Distribution & Digital Asset Management
+
+> *Content distribution in asset management is not a marketing function — it is a client experience function. Every fund fact sheet, performance attribution report, regulatory disclosure, and thought leadership piece that reaches an advisor or institutional client is a direct touchpoint with the brand. The platform that governs that content governs the quality of the relationship.*
+
+### Why Content Distribution Is a Technology Leadership Responsibility
+
+In most asset managers, content distribution is treated as a marketing operations problem. The mistake is in that categorisation. At Nomura Asset Management International, the Head of Client Technology owns the platforms through which content reaches advisors, wealth clients, and institutional investors — Seismic, the client portal, Salesforce engagement templates, and the reporting layer. Each of these is a content distribution surface. The discipline that governs them is **Digital Asset Management (DAM)**.
+
+DAM is not a single product — it is an architectural capability: the ability to centralise, version-control, govern, and distribute approved marketing materials, reports, presentations, and multimedia content across all channels and all audiences, with compliance assurance built into the workflow.
+
+---
+
+### The Five Pillars of Content Distribution in Asset Management
+
+#### Pillar 1: Centralised Control — Single Source of Truth
+
+The foundational problem DAM solves is **scattered, ungoverned content** — fund fact sheets living in individual advisor email attachments, performance attribution reports stored on SharePoint folders with inconsistent versioning, regulatory disclosures updated by compliance without a distribution workflow that ensures the old version is retired.
+
+A DAM system (Aprimo, Bynder, OpenText Media Management, Acquia/Widen, Seismic Content Hub) provides:
+- A single authoritative repository for all approved brand and investment content
+- Version control that automatically retires superseded materials
+- Metadata tagging by asset class, audience type (institutional/wealth/advisor), regulatory jurisdiction, and content category
+- Access permissions aligned to distribution role (internal RM, external advisor, institutional client portal)
+
+**Nomura application:** Today, Seismic functions as the sales enablement layer of DAM — it governs what content wholesalers and RMs use in client-facing interactions. The gap is that Seismic is not a complete DAM: it does not govern the full content lifecycle from production (investment writing, compliance review, design) to distribution. Integrating a upstream DAM (or extending Seismic's content management capabilities) would give the platform team a governed production→distribution pipeline.
+
+**What to say in the room (to Kathleen):**
+> *"The content governance question I want to explore with you is whether Seismic is serving as our DAM or whether we need a layer upstream of it. If compliance-approved content is still reaching Seismic through manual uploads from individual team members, we have a version control risk and a brand consistency risk that a proper DAM integration would eliminate."*
+
+---
+
+#### Pillar 2: Omnichannel Strategy — Every Channel, Correct Format
+
+Content that exists in only one format is not distributed — it is housed. Asset managers must reach advisors, institutional analysts, wealth clients, and internal teams across different contexts: advisor portals, email campaigns, LinkedIn, webinar follow-ups, client portal downloads, and RFP responses. Each channel requires a different content format.
+
+**The omnichannel content distribution model for Nomura:**
+
+| Content Type | Source Format | Distributed Via | Target Audience |
+|---|---|---|---|
+| Fund Fact Sheet | PDF (monthly) | Client Portal, Seismic, Email | Advisors, Institutional RFP teams |
+| Performance Attribution | PDF + Interactive Report (Vermilion/PowerBI) | Client Portal, RM reporting package | Institutional clients, Wealth clients |
+| Investment Commentary | Long-form PDF | Seismic, Email campaign, LinkedIn (excerpt) | Advisors, Wealth clients, Prospects |
+| Webinar Recording | Video | Portal, Email follow-up, Seismic library | Advisors, Registered institutional prospects |
+| DDQ/RFP Response | Structured document | AI Digital Agent output, direct email | Institutional due diligence teams |
+| Regulatory Disclosure | PDF (FINRA-approved) | Portal, Seismic (compliance-tagged) | All distribution channels |
+| Product Pitch Deck | PowerPoint / PDF | Seismic (customised per audience tier) | Wholesalers, Advisors |
+| Social Media Content | Short-form image, quote card, video clip | LinkedIn, firm social profiles | Advisors, prospects, general market |
+
+**The content atomisation principle:** Effective omnichannel distribution requires **breaking down larger content pieces into smaller, reusable formats**. A 60-minute webinar becomes: a 90-second highlight clip for LinkedIn, a 3-slide summary PDF for Seismic, a quote card for social media, and a full-recording link for the portal. This is not a marketing preference — it is a reach multiplier. Advisors who will not watch 60 minutes will engage with 90 seconds.
+
+**Nomura application:** Seismic's LiveSend and content analytics capability already supports content atomisation tracking — the platform can tell you which content formats drove the most advisor engagement. Connecting this analytics signal to the content production workflow (informing investment writing and design teams which formats perform) creates a feedback loop that compounds distribution effectiveness over time.
+
+---
+
+#### Pillar 3: Targeted Distribution — Data-Driven Audience Segmentation
+
+The era of broadcast content distribution — the same fact sheet to every advisor — is over. Advisors with different book sizes, client profiles, geographic markets, and product specialisations have different content needs. Institutional investors at different stages of the sales cycle (awareness → due diligence → mandate → ongoing) need different content. Delivering the wrong content at the wrong stage damages the relationship.
+
+**The segmentation model for Nomura content distribution:**
+
+| Audience Segment | Distribution Signal | Content Priority |
+|---|---|---|
+| Advisors — AUM tier 1 ($500M+) | Salesforce account tier, relationship depth | Institutional-grade attribution, CIO letter, strategy deep dives |
+| Advisors — AUM tier 2 ($50M–500M) | Salesforce account tier | Fund fact sheets, performance summaries, investment commentary |
+| Advisors — Prospect (no current allocation) | Salesforce opportunity stage | Product pitch decks, competitive positioning, webinar invitations |
+| Institutional — RFP stage | AI agent DDQ trigger, Salesforce opportunity stage | DDQ/RFP automation, strategy overview, GIPS performance |
+| Institutional — Ongoing mandate | Contract confirmed, reporting cadence active | Attribution reports, risk reports, portfolio commentary |
+| Wealth clients (direct) | Client portal login profile, holdings | Personalised performance reports, curated commentary |
+
+**Technology enabler:** The Salesforce + Seismic integration is the primary segmentation engine. Seismic's LiveContent personalization capability can populate a pitch deck with advisor-specific data (their clients' asset allocation, relevant strategy performance) using Salesforce account data as the input. This transforms a generic product presentation into a personalised client conversation — without requiring the RM to manually customise it.
+
+---
+
+#### Pillar 4: Efficiency Gains — Automated Content Workflows
+
+The traditional content distribution process in asset management is manual, fragmented, and slow:
+1. Portfolio team writes monthly commentary (takes 2–3 days)
+2. Marketing formats it (takes 1–2 days)
+3. Compliance reviews it (takes 2–5 days)
+4. Distribution team publishes to portal and emails advisors (takes 1 day)
+5. Total cycle time: 6–11 business days from writing to advisor
+
+Automated content workflows compress this cycle:
+
+**Automated workflow model:**
+```
+Portfolio Manager → Content CMS (structured template)
+        ↓          (pre-approved structure reduces compliance review)
+Compliance queue → AI-assisted review flags / auto-clears low-risk content
+        ↓          (2 hours for templated content vs. 2 days for free-form)
+DAM / Seismic → Auto-publishes to portal + Seismic library
+        ↓          (zero manual upload step)
+Email campaign platform → Automated send to segmented advisor list
+        ↓
+Advisor engagement analytics → Back to Seismic recommendation engine
+```
+
+**Nomura target cycle time:** 48 hours from portfolio team submission to advisor delivery for standard monthly content.
+
+**AEM Assets reference:** Adobe Experience Manager Assets (AEM Assets) is one model for this automated workflow — it combines DAM capabilities with workflow orchestration, allowing asset creation, compliance review, and multi-channel publishing to occur within a single governed pipeline. The principle applies whether the implementation uses AEM, Aprimo, or a Seismic-native workflow: **eliminate every manual handoff between content creation and content delivery**.
+
+---
+
+#### Pillar 5: Compliance & Security — Governed Distribution at Scale
+
+In a registered investment adviser environment, content distribution is not just a marketing function — it is a regulatory function. FINRA rules govern what investment companies can communicate to retail investors and how. SEC advertising rules (Rule 206(4)-1) govern what can be in performance marketing materials. Every piece of content that leaves the firm must be pre-approved, properly disclosured, and auditable.
+
+**The compliance requirements that DAM must satisfy:**
+
+| Requirement | DAM Capability Required |
+|---|---|
+| FINRA pre-approval of retail communications | Workflow that routes new content through compliance before publication |
+| SEC performance advertising standards | Version control that locks approved performance data; prevents unauthorised edits |
+| Content expiry for time-sensitive materials | Automatic unpublishing of expired fact sheets, outdated performance data |
+| Audit trail for distributed content | Record of who accessed, modified, or distributed each asset |
+| Access entitlement by jurisdiction | Geographic access controls (EU GDPR, UK FCA, US SEC — different materials for different markets) |
+| Broker-dealer content supervision | Logging of what content RMs sent to clients via Seismic LiveSend |
+
+**FMG/Vestorly model:** The FMG acquisition of Vestorly (advisor content marketing platform) is instructive — it demonstrates that the financial services market is moving toward **curated, compliance-pre-cleared content libraries** that advisors can draw from without individual compliance review, because the governance is built into the library, not the distribution step. This is the architectural direction Nomura's content platform should move toward: pre-cleared content in Seismic, distributed with confidence, with Salesforce tracking the distribution record.
+
+---
+
+### The Content Distribution Technology Stack — Nomura Model
+
+```
++------------------------------------------------------------------+
+|              CONTENT PRODUCTION                                  |
+|  Portfolio team → Marketing → Investment Writing → Design        |
++---------------------------+----------------------------------+---+
+                            |
+           +----------------v----------------+
+           |    DAM / Content Hub            |
+           |  (Seismic Content Hub or        |
+           |   Aprimo/Bynder upstream)        |
+           |  • Version control              |
+           |  • Compliance workflow          |
+           |  • Metadata tagging             |
+           |  • Auto-expiry                  |
+           +----------------+----------------+
+                            |
+        +-------------------+--------------------+
+        |                   |                    |
++-------v------+   +--------v-------+   +--------v---------+
+| SEISMIC      |   | CLIENT PORTAL  |   | EMAIL CAMPAIGNS  |
+| Sales Enable.|   | Institutional  |   | Advisor segments |
+| Wholesalers  |   | Wealth clients |   | Prospect lists   |
+| Advisors     |   | NAV reports    |   | Commentary sends |
++--------------+   +----------------+   +------------------+
+        |                   |                    |
+        +-------------------+--------------------+
+                            |
+           +----------------v----------------+
+           |  ENGAGEMENT ANALYTICS           |
+           |  (Salesforce + Seismic)         |
+           |  • What content was opened      |
+           |  • Who downloaded what          |
+           |  • Which formats drove meetings |
+           +----------------+----------------+
+                            |
+           +----------------v----------------+
+           |  CONTENT OPTIMISATION LOOP      |
+           |  Inform next content cycle:     |
+           |  what to produce, in what       |
+           |  format, for which segment      |
+           +---------------------------------+
+```
+
+---
+
+### Connecting Content Distribution to AUM Outcomes
+
+| Content Distribution Capability | Business Outcome | AUM Impact |
+|---|---|---|
+| Personalised Seismic pitch decks (Salesforce data) | Advisors present relevant strategies, not generic product | Higher wallet share conversion per RM meeting |
+| Automated fact sheet distribution within 48 hrs | Advisors have current data before client meetings | Reduced advisor attrition from content delays |
+| Compliance-pre-cleared content library | Zero re-review for standard content; faster to market | Competitive advantage in time-sensitive market moments |
+| Content engagement analytics → RM follow-up | Salesforce triggers alert when advisor engages with content | Higher meeting conversion from content-to-conversation |
+| Webinar → atomised content (clip, PDF, social) | 5× distribution reach from single content production investment | Broader advisor pipeline engagement |
+| Content expiry + version control | No outdated performance data reaches advisors or clients | Elimination of compliance/regulatory risk from stale content |
+
+---
+
+## 20. AI Chatbot + DAM + Salesforce Integration Architecture
+
+> *The convergence of AI-powered conversational interfaces, centralised digital asset management, and CRM creates the "ambient content layer" — where the right asset reaches the right person at the right moment, without search, without context-switching, and without compliance risk. For an asset manager, this is not a technology capability — it is a distribution advantage.*
+
+### Why This Integration Matters at Nomura
+
+Today, an RM or wholesaler at Nomura who needs a specific piece of content for a client interaction takes this workflow:
+1. Remember where the content might be
+2. Search across Seismic, the intranet, email attachments, or shared drives
+3. Check whether the version found is the current, compliance-approved version
+4. Download it or forward it
+5. Log the activity in Salesforce (usually skipped)
+
+This workflow loses to a well-configured AI chatbot + DAM + Salesforce integration in every dimension: speed, accuracy, compliance assurance, and auditability. The integrated model allows an RM to say, *"Find the latest private credit strategy overview for an institutional prospect in the UK,"* and receive the correct, compliance-approved, jurisdiction-appropriate document in under 10 seconds — without leaving Salesforce, without knowing its location, and with the interaction automatically logged.
+
+---
+
+### System Architecture: Three Integrated Layers
+
+```
++-------------------------------------------------------------+
+|  LAYER 1: CONVERSATIONAL AI (User-Facing Interface)         |
+|                                                             |
+|  Salesforce Agentforce / Einstein AI Chatbot                |
+|  ┌────────────────────────────────────────────────┐        |
+|  │  Natural Language Query Interface               │        |
+|  │  "Find the latest EM debt fund fact sheet"      │        |
+|  │  "Show compliance-approved UK pitch deck"        │        |
+|  │  "What changed in last month's commentary?"     │        |
+|  └───────────────────┬────────────────────────────┘        |
++---------------------│-------------------------------------------+
+                       │ API call with parsed intent + metadata
++---------------------v-------------------------------------------+
+|  LAYER 2: DIGITAL ASSET MANAGEMENT (Content Repository)     |
+|                                                             |
+|  Aprimo / Bynder / OpenText OTMM / Acquia (Widen)          |
+|  ┌─────────────────────────────────────────────────┐       |
+|  │  AI-powered auto-tagging (content type, asset   │       |
+|  │  class, audience, jurisdiction, expiry date)    │       |
+|  │  Version control + compliance workflow status   │       |
+|  │  Usage rights management                        │       |
+|  │  Search API → returns asset ID + download URL   │       |
+|  └──────────────────────┬──────────────────────────┘       |
++------------------------│---------------------------------------+
+                          │ Asset metadata + secure download link
++------------------------v---------------------------------------+
+|  LAYER 3: CRM ORCHESTRATION (Salesforce Sales & Service)    |
+|                                                             |
+|  Salesforce Financial Services Cloud                        |
+|  ┌─────────────────────────────────────────────────┐       |
+|  │  RM / Wholesaler working context                │       |
+|  │  Account record (client, opportunity, stage)   │       |
+|  │  Activity log: asset retrieved + sent          │       |
+|  │  Email/message send via Salesforce channel      │       |
+|  │  Content performance feed back to Seismic       │       |
+|  └─────────────────────────────────────────────────┘       |
++-------------------------------------------------------------+
+```
+
+---
+
+### The AI Chatbot Component — Agentforce / Einstein at Nomura
+
+Salesforce Agentforce (formerly Einstein Copilot, evolving into the AI Agent layer) is the conversational interface that sits inside Salesforce and acts as the RM's intelligent assistant. At Nomura, a properly configured Agentforce deployment would serve three distinct use cases:
+
+**Use Case 1 — Content Retrieval (DAM Query)**
+RM asks: *"I'm preparing for a meeting with a UK pension fund considering our global fixed income strategy. What materials should I bring?"*
+
+Agentforce behavior:
+- Parses intent: audience (institutional, UK), strategy (global fixed income), stage (pre-meeting)
+- Queries DAM via API: filters for UK-jurisdiction content, global fixed income tag, current version, compliance-approved status
+- Returns: strategy overview PDF, last 4 quarters of GIPS performance, CIO investment commentary, and any relevant ESG disclosure required for UK institutional
+- Logs retrieval in Salesforce activity timeline against the Opportunity record
+- Records which assets were viewed/sent for Seismic analytics feedback
+
+**Use Case 2 — RFP / DDQ Instant Response**
+RM asks: *"The prospect just asked about our investment risk management framework in their DDQ portal. What's our approved response?"*
+
+Agentforce behavior:
+- Queries the AI Digital Agent knowledge base (Section 6 — existing DDQ automation layer)
+- Returns the current, compliance-approved DDQ response chunk for "risk management framework"
+- Flags confidence score: if below threshold, routes to subject matter expert for human review before RM uses it
+- All responses generated are audit-logged with timestamp, version used, and RM identity (FINRA requirement)
+
+**Use Case 3 — Content Freshness Alert**
+Proactive: *"The fund fact sheet for Nomura Global High Yield that you sent to your prospect 14 days ago has been updated. The performance data now reflects February month-end. Would you like to send the updated version?"*
+
+Agentforce behavior:
+- DAM integration detects new approved version of previously sent asset
+- Pushes notification to RM via Salesforce notification panel
+- One-click re-send with updated content via Salesforce email with activity log
+- Prospect engagement tracked (open, click, download)
+
+---
+
+### The DAM Component — Platform Evaluation for Nomura
+
+| DAM Platform | Salesforce Integration | Key Capability | Best Fit For |
+|---|---|---|---|
+| **Aprimo** | Native connector, AI-driven tagging, predictive search | Full content lifecycle management from planning to delivery; robust compliance workflow | Enterprise asset managers with high content volume and complex compliance requirements |
+| **Bynder** | Salesforce Marketing Cloud direct integration, CDP connector | Brand experience focus; AI-powered DAM with strong creative team workflow | Wealth / retail distribution with heavy brand and campaign focus |
+| **OpenText OTMM** | Salesforce Marketing Cloud connector; browse and use in-platform | Large-scale media management; proven in regulated industries | Institutional / compliance-heavy environments where content governance is primary |
+| **Acquia DAM (Widen)** | AI assistant in workflow tool (Acquia Workflow) for conversational content review | Strong metadata management; mid-market pricing | Mid-size asset managers expanding DAM capability from basic shared drives |
+| **Pics.io** | Custom tab in Salesforce — browse DAM library without switching apps | Lightweight, rapid deployment | Smaller teams needing quick DAM-Salesforce connection without enterprise integration complexity |
+| **Seismic (extended)** | Native within Salesforce FSC; existing Nomura deployment | Sales-layer DAM with personalisation engine; LiveSend tracking | Already deployed — primary distribution surface; extend upstream to cover compliance workflow |
+
+**Nomura recommendation:** The most pragmatic path is to **extend Seismic's content management capabilities upstream** (into the compliance review and version control workflow) rather than deploying a separate enterprise DAM alongside it. Seismic's Content Hub already provides libraries, versioning, and compliance controls for sales-facing content. The gap to close is the **production-to-Seismic workflow** — how content travels from portfolio team through compliance review into Seismic in a governed, automated way. A lightweight workflow tool (Aprimo Workfront-style, or even a configured Salesforce Flow) connecting the compliance review step to Seismic's asset upload API would close this gap without deploying a second enterprise platform.
+
+---
+
+### The Salesforce Component — Financial Services Cloud as Orchestration Layer
+
+Salesforce Financial Services Cloud (FSC) is the integration hub that makes the AI chatbot + DAM model coherent. Without FSC context, the AI chatbot serves generic content. With FSC context, it serves **personalised, situationally relevant content** because it knows:
+
+- Which account the RM is working on right now
+- What stage the opportunity is at
+- What content the prospect has previously received and whether they engaged with it
+- What the advisor's book composition is (relevant strategy alignment)
+- What events or meetings are upcoming (pre-meeting content preparation)
+
+**The FSC data model that powers personalisation:**
+
+| Salesforce Object | Data | Content Distribution Use |
+|---|---|---|
+| Account | Client type (institutional/wealth), AUM tier, jurisdiction | Filters DAM content by audience type and regulatory jurisdiction |
+| Opportunity | Stage, strategy of interest, decision timeline | Serves stage-appropriate content (awareness vs. due diligence vs. close) |
+| Activity / Task | Past meetings, emails, content sent history | Prevents re-sending content already received; identifies content gaps |
+| Campaign Member | Email engagement (opens, clicks, downloads) | Informs Seismic recommendation engine of what content drove engagement |
+| Case (Service Cloud) | Client service inquiries, issue history | Allows support agents to pull technical fund documents, NAV reports instantly |
+| Contact | Role (CIO, CFO, Compliance, Operations), relationship owner | Personalises content to decision-maker role, not just account |
+
+---
+
+### Key Functional Benefits — Mapped to Nomura Business Outcomes
+
+#### Benefit 1: Reduced Manual Labour → Faster Distribution Cycle
+
+**Current state:** An RM manually searches three systems (Seismic, intranet, email archives), downloads a file, checks it for currency, and attaches it to an email. Average time: 15–25 minutes per content retrieval.
+
+**Integrated AI + DAM + Salesforce state:** RM queries Agentforce in natural language, receives current, jurisdiction-correct, compliance-approved asset in one action. Average time: under 60 seconds. Retrieval is logged automatically.
+
+**Annual time saving at Nomura scale:** If each RM performs 10 content retrievals per week, 50 weeks per year, across a 30-person distribution team: 10 × 50 × 30 × 24 minutes saved = **360,000 minutes = 6,000 hours = 750 working days** recovered annually for client-facing work.
+
+#### Benefit 2: Brand Consistency → Compliance Risk Elimination
+
+When content retrieval bypasses the DAM — which is the current state when RMs search their own email archives — outdated content reaches clients and advisors. An outdated fund fact sheet with last quarter's performance data is not just an embarrassment: in a registered investment adviser context, it may constitute a misleading communication.
+
+**The AI + DAM integration makes the compliant path the path of least resistance.** If the easiest way to get content is through Agentforce, and Agentforce only serves DAM-approved content, outdated content does not reach distribution — not because RMs were disciplined, but because the system architecture made the non-compliant path harder than the compliant one.
+
+#### Benefit 3: Sales Enablement → AUM Conversion
+
+Seismic's own research (2024) indicates that sales teams with effective content enablement close deals 27% faster than those without. In asset management terms, a 27% improvement in mandate conversion speed on a 12-month institutional sales cycle means 3 months of fee billing recovered per closed mandate. On a $500M mandate at 40bps management fee, that is $500,000 in fees per mandate accelerated.
+
+The AI + DAM + Salesforce integration is the technical architecture that makes this conversion acceleration possible at scale — not by changing what RMs do, but by eliminating the friction between knowing what to share and actually sharing the right thing.
+
+#### Benefit 4: Engagement Analytics → Content ROI
+
+The integrated model closes the loop between content distribution and content ROI. Today, Nomura's marketing team produces content without consistent data on which pieces drove advisor conversations, which formats drove meeting requests, or which strategies saw increased allocation following a content campaign.
+
+With DAM + Salesforce + Seismic analytics:
+- Every content send is tracked (Seismic LiveSend)
+- Every engagement (open, download, click) is logged back to the Salesforce Opportunity or Account
+- Patterns emerge: which content types correlate with meeting requests, which strategy commentary pieces preceded allocation decisions
+- Content production investment is directed toward what works, not what looks good
+
+---
+
+### Implementation Roadmap — Nomura Phasing
+
+| Phase | Timeline | Scope | Outcome |
+|---|---|---|---|
+| **Phase 1 — Foundation** | Q1–Q2 | Audit current Seismic content library: identify content with missing metadata, expired materials, missing jurisdiction tags | Clean, governable DAM baseline in Seismic |
+| **Phase 2 — Workflow Automation** | Q2–Q3 | Build portfolio team → compliance review → Seismic publish workflow using Salesforce Flow or lightweight workflow tool | 48-hour content delivery cycle for standard content types |
+| **Phase 3 — Agentforce Integration** | Q3–Q4 | Deploy Salesforce Agentforce with Seismic/DAM API integration; train on content taxonomy; enable natural language retrieval within Salesforce | RM content retrieval time reduced to under 60 seconds |
+| **Phase 4 — Personalisation Engine** | Q4–Q1 next year | Connect Salesforce FSC account/opportunity data to Seismic LiveContent personalisation; enable auto-populated pitch decks | Personalised presentations without manual RM customisation |
+| **Phase 5 — Analytics Loop** | Ongoing from Q3 | Connect Seismic LiveSend analytics to Salesforce Campaign and Opportunity objects; build content ROI dashboard in PowerBI | Content investment decisions grounded in conversion data |
+
+---
+
+### What to Say in the Room
+
+**To Kathleen (Client Experience & AI focus):**
+> *"The AI agent we're building for DDQ and RFP automation is the same conversational architecture we'd use to give RMs instant access to the right content without leaving Salesforce. The question I want to explore is whether we extend the agent's scope to include content retrieval — so that the same intelligence that drafts a DDQ response can also surface the right fact sheet or strategy overview for a pre-meeting brief. That would give us a single conversational AI layer for both response generation and content access, governed by the same compliance architecture."*
+
+**To Stuart (Client Platforms & Salesforce focus):**
+> *"The DAM + Salesforce integration is the missing link between Seismic and the RM workflow. Right now, Seismic is a library that RMs have to remember to visit. With Agentforce surfacing assets inside Salesforce based on what the RM is doing — which account they're on, which stage the opportunity is at — Seismic becomes ambient: the right content appears when it's needed, without any additional RM action. The integration is achievable within the Seismic + Salesforce FSC stack we already have. The first step is getting the Seismic content API scoped and the Agentforce action configured for content queries."*
+
+---
+
 ## Document Metadata
 
 | Field | Value |
@@ -1143,7 +1516,7 @@ Phase 5 — Decision & Documentation (Week 11)
 | **Role** | ED, Head of Client Technology — Nomura Asset Management International |
 | **Purpose** | Business partnership fluency and panel preparation |
 | **Technical architecture** | See main [README.md](README.md) |
-| **Version** | 2.0 — Enhanced with Trust, Early Alignment, Collaboration Model, Vendor Evaluation |
+| **Version** | 3.0 — Enhanced with Content Distribution, DAM, AI+DAM+Salesforce Integration |
 | **Last updated** | February 2026 |
 
 ---
