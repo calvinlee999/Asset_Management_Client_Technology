@@ -24,6 +24,10 @@
 12. [Partnership Principles: Product + Technology](#12-partnership-principles-product--technology)
 13. [KPIs That Matter to This Business](#13-kpis-that-matter-to-this-business)
 14. [Questions for the Panel](#14-questions-for-the-panel)
+15. [Building Trust, Relationship & Influence](#15-building-trust-relationship--influence)
+16. [Early Alignment: Business Intent & Technical Constraints](#16-early-alignment-business-intent--technical-constraints)
+17. [Product-Technology Collaboration Model](#17-product-technology-collaboration-model)
+18. [Vendor Application Evaluation Framework](#18-vendor-application-evaluation-framework)
 
 ---
 
@@ -630,6 +634,506 @@ The Head of Client Technology is **not a service provider** to Kathleen and Stua
 
 ---
 
+---
+
+## 15. Building Trust, Relationship & Influence
+
+> *Trust is the operating currency of an Executive Director. It is not built in a single conversation — it is built through consistency, transparency, and demonstrated judgment over time. In a peer-level partnership with Kathleen and Stuart, influence without authority is the only kind that matters.*
+
+### Why This Is a Distinct Competency for This Role
+
+The Head of Client Technology does not manage Kathleen or Stuart. There is no reporting line that gives this role authority over product decisions. The only instrument of influence is credibility — established through four behaviors that distinguish trusted partners from capable technologists.
+
+---
+
+### The Four Trust Behaviors — Mapped to Nomura Scenarios
+
+#### Trust Behavior 1: Deliver What You Promise, Exactly When You Say
+
+At the Executive Director level, the baseline trust contract is: **what you commit to is what gets done, when you said it would**. Not approximately. Not mostly. Every exception requires advance communication, not post-hoc explanation.
+
+**Nomura scenario — Reporting SLA commitment:**
+If you commit to Kathleen that the reporting pipeline will deliver NAV data to the portal by 6:00 AM EST, and on day 14 it arrives at 7:30 AM without warning, you have made a withdrawal from the trust account. The technical reason is irrelevant. The failure is in communication, not in the pipeline.
+
+**The counterplay:** Build a 15-minute early-warning alert into every reporting SLA. If the pipeline is running late, Kathleen's operations team knows before clients notice. This transforms a potential trust failure into a trust deposit — you told them before they had to ask.
+
+**Rule:** *Never let a stakeholder discover a problem before you tell them about it.*
+
+---
+
+#### Trust Behavior 2: Make Tradeoffs Visible — Never Hide Technical Complexity
+
+Business partners lose trust in technologists who surface only good news, or who present solutions without naming the tradeoffs. Kathleen and Stuart have enough platform experience to know that every technical decision involves a tradeoff. If you don't name it, they assume you didn't see it — or worse, that you are managing them.
+
+**Nomura scenario — AI agent scaling request:**
+Kathleen asks: *"Can we extend the AI agent to cover client-facing Q&A on the portal by Q3?"* The wrong answer: *"Yes, we can look at that."* The right answer:
+
+> *"We can — and here is what the tradeoff looks like. Extending to client-facing Q&A requires a different content governance model than DDQ/RFP, because the client audience is broader and the regulatory bar for accuracy is higher. We would need to solve three things before Q3: (1) define the scope of questions the agent can answer vs. what routes to a human, (2) establish the compliance review process for new content types, and (3) build a confidence-threshold routing mechanism so uncertain answers go to a human in real time. If we start now, Q3 is achievable for a pilot — but not production scale. Do you want to sequence it that way?"*
+
+This response builds trust because it demonstrates that you have thought through the problem further than the question asked, and you are giving Kathleen the information she needs to make a good decision — not just a yes or a no.
+
+**Rule:** *Always show your working. Never give a clean answer to a complex question without naming what made it complex.*
+
+---
+
+#### Trust Behavior 3: Protect Partners in the Room and Behind Closed Doors
+
+Trust is damaged when partners discover that you said something different in a different room. At the Executive Director level, consistency between what you say to Kathleen and Stuart directly, what you say to your engineering team, and what you say to the broader organization is a non-negotiable.
+
+**Nomura scenario — Roadmap prioritization conflict:**
+Stuart has championed a Salesforce enhancement that requires 6 weeks of engineering capacity. Your engineering lead tells you privately that the enhancement will create an integration dependency that will slow down a different initiative by 4 weeks. The wrong response: align with Stuart in the room, then quietly slow down the other initiative and hope he doesn't notice. The right response:
+
+> *"Stuart, my engineering team has identified something I want to bring to you directly. The Salesforce enhancement we discussed is achievable, but it creates a shared dependency with the ADX onboarding pipeline — which means the onboarding initiative would slip by 4 weeks. I want to put both options on the table: we can prioritize the Salesforce enhancement and slip onboarding, or we can sequence them differently. This is your call to make — I just want you to make it with the full picture."*
+
+This behavior demonstrates that you do not hide information to preserve your own position or avoid difficult conversations. It builds the kind of trust that sustains through hard moments — not just easy ones.
+
+**Rule:** *What you say in the room must be what you say outside it. Consistency is the operating definition of integrity at this level.*
+
+---
+
+#### Trust Behavior 4: Invest in Understanding Before Prescribing Solutions
+
+The fastest way to erode trust with an experienced operator like Kathleen is to arrive with solutions before you have demonstrated that you understood the problem. She has managed complex operational workflows — DDQ processes, reporting pipelines, member services at TIFF. She will recognize immediately whether your proposed solution reflects genuine understanding of her operational context or a generic technology pattern applied without that understanding.
+
+**Nomura scenario — First 30 days:**
+Resist the instinct to arrive with a platform assessment or improvement proposal in week 2. Instead, invest the first 30 days doing three things: (1) shadow a DDQ response cycle end-to-end, (2) sit with an RM while they prepare for a client reporting call, and (3) listen to a client service phone call where an advisor has a question about a holding. Then bring your observations — not your prescriptions — to Kathleen and Stuart.
+
+> *"After the first 30 days, here are the three things I observed that I didn't expect — and I'd like to understand whether they represent gaps or intentional design decisions before I have a view on what to change."*
+
+This behavior signals humility without passivity. It positions you as someone whose assessment can be trusted because it is grounded in observed reality, not imported assumptions.
+
+**Rule:** *Demonstrate that you understood the problem before you describe the solution. The sequence matters.*
+
+---
+
+### Influence Without Authority — The ED-Level Model
+
+At Executive Director level, you influence peers (Kathleen, Stuart) through five levers — not organizational hierarchy:
+
+| Influence Lever | How It Works | Nomura Application |
+|---|---|---|
+| **Expert Credibility** | Your architectural and technical judgment is trusted because it has been accurate | When you say the Snowflake zero-copy integration is the right model, people accept it because prior recommendations proved out |
+| **Business Fluency** | You speak the language of AUM, RFP win rates, advisor penetration — not just systems | Kathleen and Stuart include you in business strategy conversations because you add value there |
+| **Anticipatory Thinking** | You see problems before they become crises and raise them proactively | You tell Stuart that a Salesforce governor limit will become a constraint in 6 months before it blocks a delivery |
+| **Coalition Building** | You build relationships laterally — with compliance, legal, operations — so platform decisions have natural allies | When you propose a change to the DDQ workflow, the compliance team is already aligned because you've been in dialogue with them |
+| **Track Record** | Every delivered commitment builds the next conversation's credibility | After the onboarding automation delivers in under 2 minutes as promised, the budget conversation for the next initiative is easier |
+
+---
+
+### Building Capital with Kathleen — Specific Playbook
+
+**What builds trust with Kathleen:**
+- Understand her AI governance work at Macquarie at a deep enough level to extend it — not re-explain it to her
+- Demonstrate operational credibility: she came from middle office and member services, not IT. She respects people who understand operational workflow complexity from the inside
+- Keep client experience at the centre of every technology conversation. She is not evaluating the elegance of your architecture — she is evaluating whether it makes clients feel valued and served
+- Be direct. She has Series 7 and 63 licenses — she is accountable for client communications. She does not have time for hedged, qualified answers that don't make a recommendation
+- Bring her problems before she discovers them
+
+**What damages trust with Kathleen:**
+- Proposing AI capabilities that don't have a content governance model behind them
+- Presenting reporting solutions that are technically correct but ignore what the client is actually trying to understand from the report
+- Using jargon that distances technology from the client outcome
+- Reconfiguring the DDQ/RFP agent she built at Macquarie without first deeply understanding why it was built the way it was
+
+---
+
+### Building Capital with Stuart — Specific Playbook
+
+**What builds trust with Stuart:**
+- Demonstrate that you understand the Salesforce platform architecture at a depth that allows you to evaluate proposals — not just accept or reject them
+- Show roadmap discipline: manage to the sequence, communicate variance early, close delivery gaps
+- Use his language: platform leverage, roadmap velocity, foundation investments vs. feature delivery
+- Reference the work he has done at Macquarie specifically — Seismic integration, AI pre-meeting prep, Financial Services Cloud configuration — as the foundation you are building on, not starting over
+- Be explicit about the budget implications of technical decisions. He manages $22M budgets. He needs a technology partner who connects architecture choices to cost outcomes
+
+**What damages trust with Stuart:**
+- Making architectural decisions that affect his platforms without consulting him
+- Introducing new platforms to the stack without demonstrating that they solve a problem no existing platform solves
+- Overpromising delivery dates and under-delivering without advance communication
+- Treating his roadmap initiatives as technical requests rather than business investments
+
+---
+
+## 16. Early Alignment: Business Intent & Technical Constraints
+
+> *Product partnerships that align early on business intent and technical constraints are more successful because they create a shared, strategic foundation — leading to smoother collaboration and stronger long-term platform decisions. By integrating these elements at the start, companies avoid the pitfalls of "bolted-on" integrations, ensuring technical capabilities directly support business goals.* — LinkedIn / Harvard Business Review, 2023
+
+### Why Early Alignment Fails in Asset Management Technology
+
+In the absence of structured early alignment, the typical failure pattern in asset management client technology looks like this:
+
+1. Product identifies a client need and proposes a solution (e.g., *"we should add real-time portfolio Q&A to the client portal"*)
+2. Technology scopes it in isolation, either discovering too late that it conflicts with existing architecture or delivering something that doesn't match what product envisioned
+3. The delivery disappoints. Both sides blame the other for misaligned expectations
+4. The next initiative starts with less trust than this one did
+
+The alternative is a structured early alignment model — executed before any solution is proposed, scoped, or committed to.
+
+---
+
+### The Three-Pillar Early Alignment Framework
+
+#### Pillar 1: Aligning Business Intent
+
+Before any technical discussion, product and technology must define — in writing — the shared business objective the initiative is meant to serve.
+
+**The five questions that define business intent:**
+1. Which client segment does this serve, and what does success look like from *their* perspective?
+2. Does this initiative protect existing AUM, grow new AUM, or reduce operating cost — and by approximately how much?
+3. What is the current experience that this replaces, and what specifically is wrong with it?
+4. What is the minimum viable outcome that would constitute success for this initiative?
+5. What does failure look like — and who bears the consequence if this doesn't land?
+
+**Nomura example — Private credit reporting:**
+Business intent statement: *"Institutional clients investing in Nomura's private credit strategy need monthly cash flow reports and loan-level transparency in a format that their operations teams can reconcile with their own portfolio management systems. Currently, this is delivered via email attachment with a 10-day delay. The initiative must reduce delivery to 3 days and provide portal-based access."*
+
+This statement gives technology everything it needs to scope the initiative correctly: the client segment (institutional), the data requirement (loan-level), the format constraint (reconcilable), the SLA (3 days), and the delivery channel (portal). No ambiguity. No assumption.
+
+---
+
+#### Pillar 2: Defining Technical Constraints
+
+Equally important: technology must surface architectural limitations, security requirements, and platform dependencies *before* the business has committed to a timeline or a client-facing promise.
+
+**The five technical constraints that must be documented at initiative start:**
+1. **Data residency and sovereignty**: Where does the underlying data live, and what jurisdictional constraints govern its movement?
+2. **Platform dependencies**: Which existing systems does this touch, and what are their current capacity and change-management constraints?
+3. **Security and access control**: What entitlement model governs who can see this data, and at what granularity?
+4. **Compliance and audit requirements**: What logging, retention, and access audit obligations apply to this data or user interaction?
+5. **Performance and scalability envelope**: What are the expected peak-load conditions, and does the current architecture support them without redesign?
+
+**Nomura example — AI agent extension to client-facing Q&A:**
+Technical constraints surfaced early: (1) the current knowledge base is scoped for internal DDQ/RFP use — client-facing content requires a different compliance review workflow; (2) LLM API rate limits become a constraint at portal scale — caching and routing architecture must be designed for; (3) client PII cannot flow through the LLM API without a DPA with the provider; (4) all AI-generated responses to clients require an audit trail for FINRA examination; (5) confidence-threshold routing logic does not yet exist and requires 6 weeks of engineering development.
+
+Surfacing these constraints early prevents the business from committing to a Q2 launch that the platform cannot support.
+
+---
+
+#### Pillar 3: Integrating into the Product Roadmap
+
+Successful partnerships treat integration as a **core product decision**, prioritizing it on the product roadmap rather than maintaining it as a separate partner or engineering backlog.
+
+**What this means in practice at Nomura:**
+
+| Initiative | Business Intent | Technical Prerequisite | Roadmap Sequence |
+|---|---|---|---|
+| Private Credit Portal Reporting | Loan-level transparency for institutional clients | Multi-cadence data pipeline (separate from public market feed) | Q2: pipeline; Q3: portal |
+| AI Agent Extension — Client Q&A | Self-service portal Q&A for advisors | Compliance review workflow, PII DPA, confidence routing | Q3: governance design; Q4: pilot |
+| Salesforce 360 Client View | Unified RM view: performance + service + meetings | Zero-copy integration from data lake to SF (read-only) | Q1: data contract; Q2: SF embed |
+| Seismic Content Auto-Refresh | Current, compliant content always surfaced | Content API from product publishing system to Seismic | Q2: API build; Q3: Seismic sync |
+| Onboarding Automation Phase 2 | Sub-2-minute entitlement for new strategies | Step Functions extension + new ADX dataset provisioning | Q1: design; Q2: delivery |
+
+This table is the artifact that early alignment produces. Both product (Kathleen, Stuart) and technology share it, own it, and use it to sequence conversations with leadership.
+
+---
+
+### The Discovery Session — Structure and Agenda
+
+Every significant initiative should begin with a structured discovery session involving product and technology jointly. This is not a requirements-gathering meeting — it is a shared problem-definition exercise.
+
+**Discovery Session Agenda (90 minutes):**
+
+```
+Part 1 — Business Intent (30 min)
+  - What client or distribution problem are we solving? (15 min)
+  - What does success look like, and how do we measure it? (10 min)
+  - What happens if we do nothing? (5 min)
+
+Part 2 — Technical Constraints Inventory (30 min)
+  - What platform surfaces are touched? (10 min)
+  - What data, security, or compliance constraints are in play? (10 min)
+  - What is currently unknown that could affect scope or timeline? (10 min)
+
+Part 3 — Shared Sequencing (30 min)
+  - Given business intent and technical constraints, what is the earliest credible delivery? (15 min)
+  - What decisions need to be made by whom to unlock progress? (10 min)
+  - What does the team agree to document and circulate within 48 hours? (5 min)
+```
+
+**Output artifacts (must be produced within 48 hours of the session):**
+- Business intent statement (1 paragraph, agreed by product and technology)
+- Technical constraints register (5–7 items, each owned by a named individual)
+- Draft roadmap position (initiative placed on the shared roadmap with prerequisites named)
+- Open decision log (decisions that must be made, by whom, by when)
+
+---
+
+### Documentation Discipline — Replacing Verbal Agreements
+
+A 2023 Harvard Business Review survey found that the most common source of misalignment between leadership and implementation teams is reliance on verbal agreements made in strategy meetings that are never written down. The solution is a documentation discipline that is light enough to be maintained but structured enough to remove ambiguity.
+
+**The three documents that govern every Nomura platform initiative:**
+
+**Document 1 — Initiative Charter (1 page)**
+Owner: Product Manager (Kathleen's team)
+Content: Business intent, success metrics, client segment, AUM impact estimate, go/no-go criteria
+Purpose: Everyone working on this initiative reads this before writing a line of code
+
+**Document 2 — Technical Constraints & Architecture Decision Record (ADR)**
+Owner: Head of Client Technology (you)
+Content: Platform dependencies, data residency, security model, performance envelope, open decisions with resolution dates
+Purpose: The record of the technical considerations that shaped the solution approach — consulted during delivery and referenced during SOC 2 / DDQ review
+
+**Document 3 — Shared Roadmap Entry**
+Owner: Joint (Product + Technology)
+Content: Initiative name, business intent (1 line), technical prerequisites, delivery phase, budget owner, success KPI
+Purpose: The single source of truth for sequencing conversations with the CTO and Nomura leadership
+
+---
+
+### Governance Cadence — Sustaining Alignment After the Discovery Session
+
+Early alignment is not a one-time event. It requires a structured cadence to detect drift before it becomes a delivery problem.
+
+| Cadence | Frequency | Participants | Agenda |
+|---|---|---|---|
+| **Product-Technology Weekly Sync** | Weekly (30 min) | You + Product leads | Open decisions, blockers, dependency updates |
+| **Roadmap Review** | Bi-weekly (60 min) | You + Kathleen + Stuart | Initiative progress, sequencing changes, new intake |
+| **Architecture Review Board** | Monthly (90 min) | You + engineering leads + platform architect | Proposed significant changes to platform architecture |
+| **Strategic Alignment Session** | Quarterly (half-day) | You + Kathleen + Stuart + CTO | AUM impact review, platform investment sequencing, next-quarter priorities |
+| **DDQ/Compliance Review** | Per-initiative | You + Kathleen + Legal/Compliance | Technology DDQ sections updated to reflect platform changes |
+
+**The rule that prevents governance decay:** Every open decision has a named owner and a resolution date in the shared open decision log. If a decision misses its date, it automatically escalates to the roadmap review. No silent slippage.
+
+---
+
+## 17. Product-Technology Collaboration Model
+
+> *The goal is not for technology to serve product, or for product to defer to technology. The goal is a collaborative model where each function brings its domain expertise to a shared problem, and the solution is better because both perspectives were applied together.*
+
+### Role Division — The Clarity Model
+
+Confusion about role boundaries is the single largest source of friction in product-technology partnerships. The following model makes the division explicit — and sustainable.
+
+```
++------------------------------------------------------------------+
+|                     SHARED ACCOUNTABILITY                        |
+|          Business Outcome · Client Value · Delivery              |
++----------------------------+------------------------------------+-+
+                             |
+       +---------------------+----------------------+
+       |                                            |
++------v-----------------+           +--------------v--------------+
+|   PRODUCT MANAGER      |           |  HEAD OF CLIENT TECHNOLOGY  |
+|  (Kathleen / Stuart)   |           |          (You)              |
++------------------------+           +-----------------------------+
+| • Product vision       |           | • Solution architecture     |
+| • Business case        |           | • Data architecture         |
+| • Client requirements  |           | • Infrastructure/cloud arch |
+| • Product architecture |           | • Platform governance       |
+| • Roadmap sequencing   |           | • Build/buy/integrate eval  |
+| • Stakeholder mgmt     |           | • Engineering org design    |
+| • Success metrics      |           | • Technical risk management |
+| • Compliance intent    |           | • SOC 2 / security posture  |
+| • UX and content       |           | • FinOps / run cost         |
+|   governance           |           |                             |
++------------------------+           +-----------------------------+
+       |                                            |
+       +---------------------+----------------------+
+                             |
+              +--------------v--------------+
+              |       COLLABORATIVE ZONE    |
+              | Requirements clarification  |
+              | Solutioning workshops       |
+              | Vendor evaluation           |
+              | Architecture trade-offs     |
+              | Roadmap sequencing          |
+              | Incident response           |
+              +-----------------------------+
+```
+
+**The rule for the Collaborative Zone:** Decisions made in this space are owned jointly. Neither product nor technology can override the other unilaterally. If consensus cannot be reached, it escalates to a named decision-maker — agreed in advance.
+
+---
+
+### What Technology Always Brings to Product Discussions
+
+To make collaboration productive, technology must consistently contribute the five questions that product discussions often skip:
+
+**The Five Technology Clarifying Questions:**
+
+1. **Who owns the data, and where does it live?**
+   Product proposes a feature involving portfolio performance data. Technology asks: is this data from Aladdin, Bloomberg, the reporting platform, or the data lake — and have we established a governed integration for this source?
+
+2. **What is the failure state, and who does it affect?**
+   Product proposes automated NAV delivery to the portal. Technology asks: when the pipeline is late or delivers a reconciliation error, what is the client experience — and what is the RM communication protocol?
+
+3. **Is this a one-time requirement or a platform capability?**
+   Product requests a custom report for a specific institutional client. Technology asks: is this a one-off or the first instance of a capability we need to build properly for the platform? Answering this determines whether we build a bespoke solution or extend the reporting engine.
+
+4. **What does compliance need to know about this?**
+   Product proposes extending Seismic to a new content type. Technology asks: has compliance been involved in defining the approval workflow for this content category? What are the FINRA implications for how this is tagged and tracked?
+
+5. **What breaks if this changes downstream?**
+   Product wants to modify the Salesforce opportunity model. Technology asks: what downstream processes depend on the current model — Step Functions workflows, ADX entitlement triggers, reporting queries — and what is the change impact?
+
+These questions are not blockers. They are the infrastructure of a good decision. Bringing them consistently establishes technology as a thoughtful partner — not a gatekeeper.
+
+---
+
+### Collaborative Solutioning — Worked Example: Seismic Content Discovery Problem
+
+**The business problem (as presented by Stuart):**
+> *"Wholesalers are spending 20–30 minutes before each advisor meeting finding and manually customizing the right content. Seismic is supposed to solve this, but adoption is low because the content surfacing isn't matching what advisors actually need. Can we fix it?"*
+
+**Step 1 — Technology's initial clarifying questions (not solutions):**
+- What signals are currently used to surface content in Seismic — is it advisor geography, AUM tier, fund holdings, or meeting history?
+- Is the problem that the wrong content is suggested, or that the right content exists but isn't findable?
+- Do wholesalers have time in their workflow to provide feedback on suggestions, or does any fix need to be zero-friction at the point of use?
+- Is Salesforce meeting data (topic, agenda, client stage) currently flowing into Seismic's recommendation engine?
+
+**Step 2 — Joint problem redefinition (product + technology together):**
+> *"The content surfacing problem is actually a data signal problem. Seismic is surfacing content based on advisor tier alone. It does not have access to meeting topic, advisor's recent fund discussions, or client AUM profile from Salesforce. The fix is a richer data integration between Salesforce meeting records and Seismic's recommendation API — not a Seismic configuration change."*
+
+**Step 3 — Technology's solution options (with tradeoffs named):**
+
+| Option | Description | Time to Deliver | Tradeoff |
+|---|---|---|---|
+| **Option A** | Push Salesforce meeting topic + client AUM tier to Seismic via existing API | 4 weeks | Only uses existing data signals; limited personalization depth |
+| **Option B** | Build a recommendation micro-service aggregating Salesforce + fund performance + content engagement history feeding Seismic | 12 weeks | Richer signals; requires new engineering capability and ongoing maintenance |
+| **Option C** | Augment Option A with a wholesaler-facing feedback button ("this content was right / wrong") feeding a retraining loop | 6 weeks total (A + 2 weeks) | Best long-term quality; requires product to manage the feedback data governance |
+
+**Step 4 — Product makes the decision (technology enables it):**
+Stuart selects Option C: start with Option A for quick adoption improvement, add the feedback loop in week 6 for continuous improvement. Technology owns the API integration and data pipeline. Product owns the Seismic content taxonomy and the feedback governance model.
+
+**Step 5 — Shared success metric defined:**
+> *"Wholesaler pre-meeting prep time reduced from 20–30 minutes to under 5 minutes for 80% of meetings, measured 90 days after deployment. Seismic opens from suggested content increase by 40% vs. baseline."*
+
+This is collaborative solutioning: product frames the problem and owns the success definition; technology frames the solution options and owns the delivery; both share accountability for the outcome.
+
+---
+
+### Helping Product Understand Requirements in More Detail
+
+One of the most valuable contributions technology can make to product is helping product managers articulate requirements with the precision that architecture and engineering need — without doing product management for them.
+
+**The requirement clarification framework — five lenses:**
+
+| Lens | Product's Natural Language | Technology's Clarifying Prompt |
+|---|---|---|
+| **User** | "Advisors need to find content faster" | "Which advisors — all, or a specific tier? In what workflow — pre-meeting, during meeting, post-meeting?" |
+| **Data** | "Show portfolio performance on the portal" | "Which performance calculation — time-weighted, money-weighted, or both? Gross fees, net fees, or both? Against which benchmark?" |
+| **Timing** | "Clients want up-to-date data" | "What does 'up-to-date' mean for this use case — same-day NAV, real-time intraday, or as-of prior close?" |
+| **Exception** | "Make reporting more reliable" | "What is currently unreliable — the data, the timing, the calculation, or the presentation? What does the failure look like to the client?" |
+| **Scale** | "We need this to work for all clients" | "How many concurrent sessions? What is the distribution between institutional and wealth? What are the peak periods — end of quarter, January tax season?" |
+
+Using these lenses systematically transforms vague product requests into scoped, buildable requirements — without turning product conversations into engineering specification meetings.
+
+---
+
+## 18. Vendor Application Evaluation Framework
+
+> *Vendor evaluation in asset management technology is not a procurement exercise — it is a platform decision. The platform you choose today creates the integration dependencies, data governance constraints, and vendor relationships that shape the next five years of delivery capacity. Evaluating a vendor wrong costs more than the license fee.*
+
+### Why Vendor Evaluation Requires Product-Technology Partnership
+
+The most common vendor evaluation failure mode in asset management technology is **sequential evaluation** — where product evaluates a vendor for business fit, selects it, and then hands it to technology for integration scoping. By the time technology surfaces architectural constraints, the business has already formed a relationship with the vendor's executive team, and walking it back is politically costly.
+
+The alternative is **parallel, joint evaluation**: product and technology evaluate simultaneously using separated but equally weighted criteria, and no selection is made until both lenses are cleared.
+
+---
+
+### The Joint Evaluation Framework
+
+#### Product-Weighted Criteria (Kathleen & Stuart evaluate)
+
+| Criterion | Weight | What to Assess |
+|---|---|---|
+| **Business capability fit** | 25% | Does the vendor solve the specific business problem better than alternatives? |
+| **User experience for target persona** | 20% | Would an RM, wholesaler, or client actually use this without training friction? |
+| **Content governance model** | 15% | Does the vendor's compliance tagging and content control match our regulatory requirements? |
+| **Client channel alignment** | 15% | Is this platform designed for institutional, wealth, or both — and does it serve our mix? |
+| **Vendor roadmap and stability** | 15% | Is the vendor investing in the capabilities we need over the next 3 years? |
+| **Reference customer quality** | 10% | Are there comparable asset managers using this successfully? |
+
+#### Technology-Weighted Criteria (You evaluate)
+
+| Criterion | Weight | What to Assess |
+|---|---|---|
+| **API and integration architecture** | 25% | Does the vendor expose clean, documented APIs? Is there a published integration pattern for our stack (Salesforce, Snowflake, ADX)? |
+| **Data ownership and residency** | 20% | Who owns the data stored in the vendor platform? Can we extract it? What are the residency implications for EU client data? |
+| **Security and compliance posture** | 20% | SOC 2 Type II certified? GDPR-compliant? Penetration tested? Can they provide evidence, not just attestation? |
+| **Platform scalability envelope** | 15% | What are the performance SLAs? What is the degradation model under peak load? |
+| **Vendor lock-in risk** | 10% | What is the exit cost if we replace this vendor in 3 years? Is the data portable? Are integrations proprietary? |
+| **Total cost of ownership** | 10% | License cost + integration engineering + ongoing maintenance + opportunity cost of team hours required |
+
+---
+
+### The Phased Evaluation Process
+
+```
+Phase 1 — Intake & Shortlisting (Weeks 1–2)
+  Product: Define business requirements, success criteria, non-negotiables
+  Technology: Define architecture requirements, integration constraints, security baseline
+  Joint: Agree on longlist (4–6 vendors); agree on evaluation scoring model
+
+Phase 2 — Discovery & RFI (Weeks 3–4)
+  Joint: Send structured RFI to all vendors with identical business AND technical questions
+  Product: Score business capability responses
+  Technology: Score architecture and security responses
+  Joint: Shortlist to 2–3 vendors for proof of concept
+
+Phase 3 — Proof of Concept (Weeks 5–8)
+  Product: Define 2–3 representative business scenarios for PoC
+  Technology: Define integration test: can this vendor connect to our SF/Snowflake/ADX
+              stack in a sandbox?
+  Joint: Score PoC results against pre-agreed criteria (no moving the goalposts)
+
+Phase 4 — Reference Checks & Commercial Negotiation (Weeks 9–10)
+  Product: Reference calls with business users at comparable asset managers
+  Technology: Architecture review call with vendor engineering; security questionnaire review
+  Joint: Commercial terms reviewed with legal; data ownership and exit rights
+         explicitly negotiated
+
+Phase 5 — Decision & Documentation (Week 11)
+  Joint: Present scored results to CTO and business leadership
+  Product: Business recommendation with success metrics
+  Technology: Architecture recommendation with integration plan and risk register
+  Joint: Decision documented in ADR — rationale, alternatives considered,
+         tradeoffs accepted
+```
+
+**Timing principle:** No phase is skipped, even under timeline pressure. The Phase 3 PoC is the single most important phase — it reveals integration complexity that neither vendor claims nor RFI responses will disclose.
+
+---
+
+### Current Nomura Platform Evaluation Posture
+
+| Platform Category | Current State | Evaluation Trigger | Key Technology Question |
+|---|---|---|---|
+| **Client Portal** | Existing portal (vendor TBD) | Client experience gap, institutional self-service demand | Does the portal vendor expose a clean API for embedding Vermilion/PowerBI reporting? |
+| **AI Agent Platform** | Macquarie-built LLM agent (Kathleen) | Scaling to new use cases, multi-model governance | Does the current platform support model versioning, confidence scoring, and SOC 2-level audit logging? |
+| **Reporting Platform** | Vermilion (SS&C) candidate | Reporting modernization initiative | Can it support private credit valuation cadences alongside public market data? |
+| **Sales Enablement** | Seismic (Stuart) | Content discovery improvement | Does Seismic's recommendation API accept external signal enrichment (Salesforce meeting data)? |
+| **Data Platform** | ADX + Snowflake candidate | Multi-asset reporting aggregation, GIPS composite engine | Can Snowflake zero-copy sharing serve as the integration layer between portfolio system, Salesforce, and reporting simultaneously? |
+
+---
+
+### Vendor Evaluation Pitfalls — and How to Avoid Them
+
+| Pitfall | How It Manifests | Prevention |
+|---|---|---|
+| **Sequential evaluation** | Product selects, technology inherits the integration problem | Establish joint evaluation from intake — never sequential |
+| **Demo-driven selection** | Vendor demo looks impressive; integration reality is hidden | Require a working PoC in your sandbox before shortlisting |
+| **Lowest-friction wins** | The vendor with the best sales relationship gets selected | Score against pre-agreed criteria; separate relationship from capability |
+| **License cost dominates** | TCO not calculated; integration cost hidden | Always calculate 3-year TCO: license + integration engineering + maintenance |
+| **Data ownership not negotiated** | Vendor owns client data by default in SaaS contract | Negotiate data ownership and exit rights before signing — not as an amendment |
+| **Compliance not in the room** | Security and regulatory requirements discovered after selection | Include compliance/legal in the Phase 2 shortlisting decision |
+| **Reference calls too late** | References checked after decision is effectively made | Reference calls in Phase 4, before commercial terms are finalized |
+| **Vendor roadmap not stress-tested** | Promised roadmap items never delivered | Ask for the last 3 roadmap commitments and whether they shipped on time |
+
+---
+
+### What to Say in the Room (on Vendor Evaluation)
+
+**To Kathleen:**
+> *"My evaluation model separates business fit from technical fit deliberately. I don't want a technology preference to override a genuine business capability advantage — or vice versa. I'd want your team to evaluate the user experience and content governance dimensions in parallel with my architecture review, and then we compare notes before either of us has a preference. That way the selection reflects the full picture, and we both own the decision."*
+
+**To Stuart:**
+> *"The one thing I always insist on is a working PoC in a sandbox that touches our actual integration surfaces — Salesforce, Snowflake, and ADX. A vendor demo in their environment tells us nothing about the 12 weeks of integration engineering we'll face in ours. If a vendor won't commit to a PoC, that's useful signal in itself. What has your experience been with vendor PoCs at Macquarie — where have they revealed integration complexity that the demo didn't show?"*
+
+---
+
 ## Document Metadata
 
 | Field | Value |
@@ -639,6 +1143,7 @@ The Head of Client Technology is **not a service provider** to Kathleen and Stua
 | **Role** | ED, Head of Client Technology — Nomura Asset Management International |
 | **Purpose** | Business partnership fluency and panel preparation |
 | **Technical architecture** | See main [README.md](README.md) |
+| **Version** | 2.0 — Enhanced with Trust, Early Alignment, Collaboration Model, Vendor Evaluation |
 | **Last updated** | February 2026 |
 
 ---
