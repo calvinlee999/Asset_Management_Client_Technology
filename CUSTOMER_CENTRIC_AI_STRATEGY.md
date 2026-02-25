@@ -112,6 +112,20 @@ This pattern ensures:
 - **GIPS calculations are deterministic** — SageMaker calculates, Bedrock monitors
 - **Content governance is unified** — All five cases consume the same Bedrock Guardrails and OpenSearch knowledge base
 
+### The Three Layers of AI Maturity
+
+This topology governs how the five business cases are sequenced and how Nomura's AI capability evolves. Each layer requires the governance infrastructure of the previous layer to be fully operational before advancing.
+
+| Layer | Description | Business Cases | Nomura Context |
+|---|---|---|---|
+| **Layer 1 — Internal Productivity** | AI accelerates internal team workflows; all outputs reviewed by humans before any external use | Case B (NAPCE): DDQ/RFP drafting; Case A2 (NAIM): support co-pilot suggestions | Kathleen operationalized Layer 1 at Macquarie — first-ever production AI Digital Agent for DDQs/RFPs. The governance lesson: adoption lives or dies on content integrity. |
+| **Layer 2 — Assisted Decision Support** | AI surfaces ranked recommendations; humans retain full decision authority and accountability | Case A1: cross-sell Next Best Action; Case A3: personalized portfolio narrative; Case C: evidence-backed product backlog | Stuart has built Layer 2 at Macquarie — AI pre-meeting prep for sales. The governance lesson: explainability of recommendation is required for RM adoption. |
+| **Layer 3 — Client-Facing Automation** | AI interacts directly with clients or counterparties without intermediate human review of each response | Client portal AI chatbot; self-service institutional portal Q&A; automated DDQ pre-fill to external counterparties | Layer 3 is the frontier. Nomura's governance architecture (Bedrock Guardrails + Pillar 1 perimeter + Pillar 5 audit trail) is the pre-requisite for Layer 3 to be regulatory-safe. |
+
+**Current Deployment State:** Kathleen operationalized Layer 1 at Macquarie (NAPCE DDQ/RFP AI Digital Agent — first-ever production deployment in Macquarie Asset Management). Stuart has built Layer 2 (AI pre-meeting preparation for sales). Layer 3 is the frontier — Nomura's 5 Pillars of Content Governance in Business Case B (NAPCE) must be fully operational before Layer 3 is activated. Layer 3 is not a shortcut; it is the reward for rigorous Layer 1 and Layer 2 governance infrastructure.
+
+**Governance law:** Layer 3 must never be activated before the 5 Pillars of AI Content Governance (detailed in Business Case B below) are fully operational. A client-facing AI agent operating without content currency controls, ownership accountability, and immutable audit trails is a regulatory exposure — not a product feature.
+
 ---
 
 ## 3A. Business Case A1
@@ -515,6 +529,107 @@ IAM IDENTITY MESH (Security Architecture):
     Immutable audit log (CloudTrail-compliant); annual Legal & Compliance attestation required
 ```
 
+#### The Strictly Governed RAG Mesh — Why Not Fine-Tuning
+
+NAPCE is built on **Retrieval-Augmented Generation (RAG)** using Amazon Bedrock Knowledge Bases. Fine-tuning the LLM with factual fund strategy, GIPS methodology, or compliance policy data is categorically rejected.
+
+| Dimension | Fine-Tuning (Rejected) | Strictly Governed RAG Mesh (Selected) |
+|---|---|---|
+| **Fact update latency** | Full model retrain required ($50K–$500K, 4–8 weeks) | Closed-Loop Feedback DAG: correction live in OpenSearch in minutes |
+| **Audit trail** | No traceability — fact is baked into weights | Every chunk has source, owner_id, version, expiry — fully auditable |
+| **Content currency** | Stale facts persist until next retrain | S3 Object Expiration → Lambda `napce_kb_expiry_purge` → OpenSearch DELETE — expired facts are architecturally unretrievable; Lambda DLQ (`napce_kb_expiry_dlq`) ensures no silent failures |
+| **Regulatory compliance** | Cannot prove what the model "knew" at time of response | Bedrock Invocation logs + Payload 1 (raw Bedrock JSON) in QLDB + Snowflake Immutable Tables |
+| **Surgical correction** | Impossible — fact interleaved with millions of weights | DELETE chunk from OpenSearch; replace with corrected chunk; re-vectorize |
+| **Appropriate use** | Tone, jargon, and response style calibration (acceptable) | All factual financial content, compliance policies, GIPS composites |
+
+**System prompt constraint enforced on every invocation:**
+```xml
+<rule>Output retrieved policy text verbatim. Do not synthesize, summarize, or merge 
+content from multiple source documents. If two retrieved chunks conflict, output both 
+sources and flag for human review. Do not resolve the conflict autonomously.</rule>
+```
+
+#### The 5 Pillars of AI Content Governance (NAPCE Implementation)
+
+**Pillar 1 — "Current Answers Only" Perimeter**
+
+```
+S3 Knowledge Base Source → Object metadata: { Status: "Approved_Production", Review_Date: TTL }
+  ↓ On expiry: Lambda auto-fires → DELETE from OpenSearch index (chunk_id = expired_object)
+  ↓ LLM physically cannot retrieve what does not exist in the vector index
+  ↓ Bedrock Knowledge Base filter: Status = "Approved_Production" enforced at retrieval
+
+KPI: 100% elimination of AI responses citing expired or superseded policy/strategy content
+```
+
+**Pillar 2 — Clear Ownership & Accountability (Metadata-as-Code)**
+
+Every OpenSearch chunk is ingested via AWS Glue with mandatory owner bonding:
+```json
+{
+  "chunk_id": "gips_composite_policy_v7_chunk_014",
+  "owner_entra_id": "pm.lead@nomura.com",
+  "owner_salesforce_id": "005Sf000001Xy9Z",
+  "status": "Approved_Production",
+  "review_due": "2026-06-30"
+}
+```
+AI response citations include: `"Source: GIPS Composite Policy v7 · Owner: [PM Lead] · Review Due: Jun 2026"`
+
+**Pillar 3 — Centralized Updates via Closed-Loop Feedback UI**
+
+```
+Compliance Officer flags incorrect DDQ answer in Salesforce LWC
+  → RFP/DDQ EXPORT BLOCKED until correction submitted (LWC page-level enforcement)
+  → Salesforce Platform Event → MWAA "KnowledgeBase_Correction_DAG"
+    Step 1: Archive old chunk (S3 audit record)
+    Step 2: Re-vectorize corrected chunk → OpenSearch Serverless upsert
+    Step 3: Redis cache invalidation
+    Step 4: Salesforce notification: "Correction live — export unblocked"
+```
+
+**Pillar 4 — HITL Execution (AWS Step Functions Saga with Wait_For_Callback)**
+
+```
+NAPCE generates draft → Step Functions Wait_For_Callback (workflow paused; $0 cost)
+  → Salesforce LWC: Principal Portfolio Manager / Compliance Officer reviews
+  → "Approve" click → SendTaskSuccess(taskToken) → workflow resumes
+  → Watermarked PDF generated (reviewer_id embedded in document metadata)
+  → TransactionLog: { reviewer_id, timestamp, original_draft_hash, final_output_hash }
+  → Salesforce Opportunity: Stage = "Proposal Submitted"
+TIMEOUT: 72h → senior reviewer escalation; 96h → Head of Client Technology CloudWatch alarm
+```
+
+**Pillar 5 — Immutable Audit Trail (Three-Payload Architecture)**
+
+| Payload | Content | Storage |
+|---|---|---|
+| **Payload 1** | Raw Bedrock JSON: model_id, retrieved chunk_ids, confidence scores, raw response | Snowflake Immutable Table + Amazon QLDB (SHA-256 cryptographic digest chain; independently verifiable) |
+| **Payload 2** | Human-approved text, reviewer_id, Salesforce role, approval timestamp | Snowflake Immutable Table + Amazon QLDB |
+| **Payload 3** | Python diff delta: exact lines changed by human; `human_intervention_score` (% modified) | Snowflake Immutable Table — CRO-queryable |
+
+```
+SNOWFLAKE IMMUTABLE TABLE ENFORCEMENT:
+  → audit_trail table: INSERT-only privilege granted to napce_audit_writer role
+  → DELETE and UPDATE privileges: REVOKED from all roles (enforced at RBAC layer, not application)
+  → Cannot be overridden by application code regardless of Salesforce or AWS permissions
+  → Verification: `SHOW GRANTS ON TABLE audit_trail` — delete/update must show no grants
+  → Result: cryptographic immutability backed by both QLDB SHA-256 chain and Snowflake RBAC lockdown
+```
+
+**Compliance framework alignment:**
+
+| Standard | Pillar Mapping |
+|---|---|
+| **ISO/IEC 42001** (AI Management Systems) | Pillars 2, 4, 5 directly satisfy AI accountability and transparency controls |
+| **NIST AI RMF** (Govern / Map / Measure / Manage) | Pillar 1 = Manage; Pillar 3 = Govern; Pillar 5 = Measure |
+| **SEC 17a-4 / GIPS 2019 Annex B** | S3 Object Lock COMPLIANCE mode (7-year); QLDB cryptographic chain |
+
+**Governance KPIs:**
+- 100% elimination of AI hallucinations in DDQ/RFP submissions (Pillar 1 + Guardrails groundedness)
+- Zero compliance breaches from stale knowledge base content (Pillar 1 content currency controls)
+- 100% auditability of human-vs-AI output differential for every submitted document (Pillar 5 diff delta)
+
 #### The 6-Step Saga Pattern (Fault-Tolerant Proposal Assembly)
 
 A single RFP touches five systems: Amazon Batch, S3, Snowflake, Salesforce, OpenSearch. Without distributed transaction management, a Step 3 failure leaves orphaned Monte Carlo data in S3 and a corrupted Salesforce opportunity stage. The Saga pattern ensures clean rollback at every step.
@@ -742,6 +857,9 @@ Proactive risk identification across the five AI business cases. The three risks
 | Stale NAIM knowledge base | Case A2 | GitLab webhook triggers real-time Bedrock re-ingestion on every release with doc changes; weekly EventBridge full-inventory audit; CloudWatch alert if any active version >14 days stale |
 | Cortex AI personalization bias | Case A3 | SageMaker Clarify: quarterly bias review across client tiers; model retraining triggered on significant demographic distribution drift |
 | NCIE insight hallucination | Case C | Every Bedrock insight linked to exact raw source comments — one-click auditability; prompt engineering: "every claim must reference a source comment"; HITL: product owner reviews before sprint commitment |
+| **Fine-Tuning Misconception** | Case B (NAPCE) | Team proposes fine-tuning LLM with GIPS methodology or fund strategy facts. On policy change, model retains stale answer until full retrain ($50K–$500K; 4–8 weeks). No audit trail. **Architecture enforces RAG-only for all factual content.** Fine-tuning reserved for tone/jargon calibration only (never facts). Knowledge base corrections via Closed-Loop Feedback DAG: live in OpenSearch in minutes, fully auditable. |
+| **"Frankenstein" Answers (Policy Synthesis)** | Case B (NAPCE), Case A1 | Bedrock retrieves overlapping policy chunks (e.g., 2024 and 2025 RFP templates) and synthesizes a chimera answer — correct-sounding, factually incorrect, untraceable to any single approved source. FINRA examination finds two contradictory citations in a submitted DDQ. **System prompt XML constraint:** `<rule>Output retrieved policy verbatim. Do not synthesize across sources. Flag conflicts for human review.</rule>` Combined with Pillar 3 Closed-Loop Feedback: conflicting chunks flagged and resolved at source before re-vectorization. |
+| **Orphaned Knowledge (Employee Departure)** | Case B (NAPCE), Case A2 (NAIM) | Senior portfolio manager authors 40 knowledge base chunks. She departs. Entra ID disabled. Chunks remain in OpenSearch — no owner to review them. Six months later, strategy is deprecated but AI agent continues citing her analysis in live RFPs. **Workday EventBridge integration:** on `Employment_Status: Terminated`, Lambda flags all chunks owned by that employee as `Status: Requires_Review` — immediately excluded from RAG retrieval. MWAA routes flagged chunks to designated successor's Salesforce review queue with pre-populated ownership transfer form. |
 
 ---
 
@@ -855,6 +973,15 @@ KPI 3 — OPERATIONAL EFFICIENCY (Compliance & Proposals)
 **Anticipated Kathleen Question:** *"How do you ensure AI doesn't generate compliance-violating content for client communications?"*
 > *"Three layers. Bedrock Guardrails are the first line: groundedness threshold blocks any content not traceable to an approved source — whether that's a Seismic pitch deck, an application documentation chunk, or a GIPS-certified composite. The second line is Denied Topics: investment guarantees, competitor recommendations, and specific return promises are blocked at the model output layer — not at the application layer. The third line is HITL: no client-facing content leaves without a human review. The RM, agent, or compliance officer has the final gate. The AI can be wrong; the human is responsible."*
 
+**On AI Content Governance — The Strictly Governed RAG Mesh (Kathleen's Core Interest):**
+> *"Kathleen, the one architectural decision I'd most want to walk you through is why we rejected fine-tuning the LLM with factual financial content — and why that decision is the foundation of the governance story. Fine-tuning bakes facts into static model weights. When a GIPS methodology changes, when a fund mandate is terminated, when a portfolio manager leaves — the fine-tuned model retains the old answer permanently until a full retrain. That retrain costs $50,000 to $500,000 and takes 4–8 weeks, and there is no audit trail of what the model believed before. For an institution with Series 7 and regulatory accountability, that architecture is incompatible with compliance requirements. The RAG Mesh alternative keeps all facts in OpenSearch, tagged with an owner and an expiry date. Every fact is surgically correctable in minutes, and every AI response traces to the exact chunk that was retrieved. The system cannot say something that is not currently in the approved knowledge base."*
+
+**On Adoption Sustainability (The Trust Foundation):**
+> *"The AI Digital Agent only succeeds if the sales and operations team trusts its output. One wrong answer in a DDQ submitted to a $500M institutional prospect destroys that trust in a way that takes months to rebuild. The 5 Pillars of Content Governance are not a compliance checklist — they are the adoption mechanism. Pillar 1 ensures the agent cannot cite an expired policy. Pillar 2 ensures every answer has a named owner. Pillar 3 ensures corrections update the source, not the prompt. Pillar 4 ensures a human authorized every submission. And Pillar 5 means we can prove in under 60 seconds, to any regulator or auditor, exactly what the AI said and exactly what was changed before submission. That transparency is what converts a proof-of-concept into a platform the team uses every day."*
+
+**Anticipated Kathleen Question:** *"What is our exposure if the AI agent cites content from a strategy we've deprecated — or from an employee who has left the firm?"*
+> *"The exposure is zero if the governance architecture is operating correctly. Deprecated strategy content has an expiry date in the S3 object metadata. When that date is reached, Lambda fires, the OpenSearch vector is deleted, and the LLM is physically incapable of retrieving it — not because of a prompt rule, but because the data no longer exists in the retrieval index. For departed employees, we have an EventBridge integration with Workday: on Employment_Status Terminated, all knowledge base chunks owned by that individual are instantaneously flagged Requires_Review and removed from the active retrieval context. Their replacement is routed a Salesforce review queue with a pre-filled ownership transfer form. The knowledge base remains complete; the governance chain is unbroken."*
+
 ---
 
 ### For Stuart Mumley (Director, Client Platforms)
@@ -921,6 +1048,12 @@ KPI 3 — OPERATIONAL EFFICIENCY (Compliance & Proposals)
 **Q5 (Kathleen): The ROI figures are striking — 47,500× on the chatbot. How credible is that and how do we defend it?**
 
 > *"The 47,500× is defensible because it is calculated conservatively on a 0.1% pipeline conversion — meaning 99.9% of the chatbot's qualified opportunities are assumed to fail to close. We're not claiming the chatbot sells anything. We're claiming that at $80K/year in AI infrastructure, even one additional mandate closed per year out of 1,000 chatbot-qualified leads represents extraordinary ROI. The NAIM 452× figure is calculated against escalation cost avoidance — the model is: if NAIM prevents 10% of Tier-1 escalations that would otherwise result in churn, what is the AUM retention value? At $7.5M/escalation (based on average Tier-1 AUM at risk), the math closes easily. All ROI figures come from the Consolidated AI ROI table in Section 8 with explicit assumptions — any panel member can replicate the calculation."*
+
+---
+
+**Q6 (Kathleen): You mentioned RAG and fine-tuning. Walk me through the content governance model for NAPCE — specifically, how do you ensure an answer that was correct six months ago is not still being served today after a strategy change?**
+
+> *"This is the question I'd lead with if I were interviewing this architecture. The answer is Pillar 1 of the Content Governance framework: the 'Current Answers Only' Perimeter. Every document in the NAPCE knowledge base is stored in S3 with an expiry date in its object metadata — set by the document owner at ingestion and refreshed on review. When that date is reached, a Lambda function fires automatically and deletes the corresponding vector from the OpenSearch index. From that moment, the LLM cannot retrieve it — not because a prompt rule prevents it, but because the data physically no longer exists in the retrieval layer. There is no way to accidentally serve a stale answer from an expired document — the infrastructure prevents it, not the model's judgment. The document owner receives a 30-day renewal notification in Salesforce before expiry, with a one-click re-attestation workflow. If the owner does not renew, the content expires. The agent's silence on a topic is the correct response when the answer cannot be certified current."*
 
 ---
 

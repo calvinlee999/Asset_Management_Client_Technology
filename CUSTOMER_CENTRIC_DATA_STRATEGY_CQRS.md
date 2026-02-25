@@ -83,6 +83,20 @@ QUERY PATH (Low Latency — Read-Optimized)
 | **Client Reporting & Performance (Domain 6)** | Query Path — GIPS and Vermilion read from same Gold record | Performance Engine → Vermilion → Portal — one data chain |
 | **Sales Enablement (Domain 7)** | Query Path — Seismic personalizes from Gold layer | AUM churn risk score surfaces in advisor meeting prep |
 
+### 1.4 The Three Layers of AI Maturity (Strategic Framing)
+
+This framework governs how AI capability is sequenced across the Nomura Client Technology platform. Each layer builds on the governance foundation of the one before it.
+
+| Layer | Description | Nomura Implementation | Governance Requirement |
+|---|---|---|---|
+| **Layer 1 — Internal Productivity** | AI helps internal teams work faster without replacing human judgment | NAPCE DDQ/RFP agent: drafts regulatory responses in hours instead of 3–6 weeks | Content must be auditable; HITL mandatory before client submission |
+| **Layer 2 — Assisted Decision Support** | AI provides ranked recommendations; humans retain final decision authority | Pre-meeting client insights for RMs; NAIM Support Co-Pilot troubleshooting suggestions | Recommendation traceability required; human approval gates enforced |
+| **Layer 3 — Client-Facing Automation** | AI interacts directly with clients or counterparties without intermediate human review | Self-service portal AI Q&A; real-time chatbot responses on portfolio performance | Highest governance bar: Bedrock Guardrails + RLS + immutable audit trail required at all times |
+
+**Current State at Nomura:** Layer 1 (Internal Productivity) is the deployment target for NAPCE DDQ/RFP. Layer 2 (Assisted Decision Support) is the deployment target for NAIM, A1 cross-sell, and A3 personalization. Layer 3 requires the 5 Pillars of Content Governance (Section 5.3) to be fully operational before activation — it must never be enabled on the governance foundation of Layer 1 alone.
+
+**Critical principle:** Layer 3 is only viable when Layer 1 and Layer 2 governance infrastructure is fully operational. A client-facing AI agent that cannot guarantee content currency, ownership accountability, and audit trail integrity is a regulatory liability, not a product feature.
+
 ---
 
 ## 2. PHASE 1 — DATA DISCOVERY PROCESS
@@ -598,6 +612,223 @@ Separate Snowflake virtual warehouses per consumer mean **quarter-end data loadi
 
 ---
 
+## 5.3 AI CONTENT GOVERNANCE — THE STRICTLY GOVERNED RAG MESH
+
+### The Architectural Mandate: RAG, Not Fine-Tuning
+
+The NAPCE AI Digital Agent (and all client-facing AI at Nomura) is built on **Retrieval-Augmented Generation (RAG)**, not fine-tuned model weights. This is a deliberate, non-negotiable architectural decision.
+
+**Executive Summary — The 5 Pillars of AI Content Governance:**
+
+> The five pillars answer a single business question: *How do we ensure that an AI agent operating at the speed of automation maintains the accuracy standards required by a regulated financial institution?*
+>
+> **Pillar 1** ensures the agent can only retrieve currently-approved content — expired content is architecturally unreachable.
+> **Pillar 2** ensures every AI-generated answer has a named, accountable human owner permanently bonded to it.
+> **Pillar 3** ensures corrections update the knowledge base source — not just the next response.
+> **Pillar 4** ensures no AI-generated document reaches a client or counterparty without explicit human authorization.
+> **Pillar 5** ensures every AI output, every human modification, and every approval is immutably recorded and independently verifiable by regulators.
+>
+> Together, these five pillars are the trust architecture that makes institutional clients comfortable with AI in their DDQ/RFP workflow.
+
+**Why fine-tuning is categorically rejected for factual content:**
+
+> Fine-tuning bakes facts into static model weights. When a fund strategy changes, when GIPS performance data is restated, or when a portfolio manager leaves the firm — the fine-tuned model retains the old answer permanently. Correcting it requires a full model retrain ($50,000–$500,000, 4–8 weeks). There is no governance, no audit trail, and no surgical update path. For regulated financial content, fine-tuning is architecturally incompatible with compliance requirements.
+
+**The RAG Mesh alternative:**
+- The LLM supplies reasoning capability and language fluency — it never stores facts
+- All factual content lives in Amazon Bedrock Knowledge Bases (OpenSearch Serverless)
+- The LLM retrieves chunks at query time; governance applies to the retrieval layer, not the model
+- Any fact can be updated, expired, or audited in real time — without touching the model
+
+### The 5 Pillars of AI Content Governance
+
+#### Pillar 1 — "Current Answers Only" Perimeter
+
+No AI response may ever be generated from expired, superseded, or unapproved content.
+
+```
+CONTENT LIFECYCLE ENFORCEMENT
+
+S3 Bucket (KnowledgeBase Source)
+  ├── Object metadata: { Status: "Approved_Production", Review_Date: "2026-03-31" }
+  ├── S3 Object Expiration Rule: TTL triggers Lambda `napce_kb_expiry_purge` on expiry date
+  ├── Lambda purge: DELETE from OpenSearch index where chunk_id = expired_object_id
+  │                  → LLM physically cannot retrieve the vector (it no longer exists)
+  ├── Lambda DLQ: SQS `napce_kb_expiry_dlq` for failed purge operations
+  └── CloudWatch alarm: DLQ MessageCount > 0 → PagerDuty (ensures no silent expiry failures)
+
+AWS Glue Catalog metadata:
+  → `Status: Approved_Production` = active in knowledge base
+  → `Status: Pending_Review` = excluded from retrieval context
+  → `Status: Archived` = purged from OpenSearch; 7-year cold storage in S3 Glacier
+
+Bedrock Guardrails filter:
+  → Retrieval context restricted to chunks tagged `Status: Approved_Production`
+  → Any chunk missing this tag is excluded from the RAG context window
+```
+
+**Governance outcome:** The LLM is architecturally incapable of retrieving expired content. The perimeter is enforced by infrastructure, not by prompt instructions alone.
+
+#### Pillar 2 — Clear Ownership & Accountability
+
+Every chunk of knowledge in the AI agent's knowledge base has a named, accountable human owner.
+
+```
+METADATA-AS-CODE (Enforced at ingestion via AWS Glue)
+
+Each vectorized chunk carries:
+  {
+    "chunk_id": "eso_policy_v4_chunk_027",
+    "source_document": "ESG_Investment_Policy_v4.pdf",
+    "owner_entra_id": "kdoe@nomura.com",
+    "owner_salesforce_id": "0055g000003xYZ",
+    "approved_by": "compliance_review_panel",
+    "effective_date": "2025-11-01",
+    "review_due": "2026-05-01",
+    "status": "Approved_Production"
+  }
+
+Client-facing AI response citation:
+  "Source: ESG Policy v4 (Effective Nov 2025) · Owner: Kathleen Doe · Next Review: May 2026"
+
+Salesforce Owner lookup:
+  → If owner_salesforce_id is inactive (employee terminated), route to successor
+  → Successor assignment: automated via Workday → EventBridge → Salesforce workflow
+
+INGESTION VALIDATION (AWS Glue — enforced before vectorization):
+  → Mandatory fields validated at ingestion: owner_entra_id, owner_salesforce_id, status, review_due
+  → Objects missing any required field → routed to S3 DLQ `napce_kb_metadata_dlq` — NEVER vectorized
+  → CloudWatch alarm: napce_kb_metadata_dlq MessageCount > 0 → PagerDuty (immediate escalation)
+  → Governance outcome: no orphaned (unowned) chunks can enter the OpenSearch retrieval index
+```
+
+**Governance outcome:** Every AI-generated answer is permanently traceable to the person who authored and is responsible for its accuracy. AWS Glue enforces this at ingestion — malformed or unowned metadata objects are quarantined before they can contaminate the retrieval index.
+
+#### Pillar 3 — Centralized Updates, No Ad-Hoc Fixes
+
+Knowledge base corrections must flow through a governed pipeline — never patched directly in OpenSearch.
+
+```
+CLOSED-LOOP FEEDBACK UI (Salesforce Lightning Web Component)
+
+RM or Compliance Officer identifies an incorrect AI answer
+  ↓
+"Flag Inaccuracy" button in Salesforce DDQ/RFP Review UI
+  ↓
+Correction submission form (required fields: correct answer text, policy reference, urgency)
+  ↓
+Salesforce Platform Event → MWAA DAG triggered
+  ↓
+MWAA `knowledge_base_correction_dag`:
+  Step 1: Archive old chunk in S3 (audit record preserved)
+  Step 2: Write corrected chunk to S3 with updated metadata (new version, same owner_id)
+  Step 3: Re-vectorize corrected chunk via Amazon Bedrock Embeddings
+  Step 4: Upsert corrected vector into OpenSearch Serverless
+  Step 5: Redis cache invalidation — KEYS pattern: `kb_query:*:{chunk_id}*`
+           → Precise invalidation of affected query patterns; no global cache flush
+  Step 6: Salesforce notification: "Knowledge base updated — correction live"
+
+EXPORT BLOCK:
+  → RFP/DDQ export is BLOCKED in Salesforce until the flagged section is corrected
+  → Block enforced at Salesforce page layout level — cannot be bypassed by any user role
+```
+
+**Governance outcome:** Incorrect content is corrected in the source, re-vectorized, and live in the knowledge base within minutes — not buried in a single response where the error persists in the next 50 RFPs.
+
+#### Pillar 4 — Human-in-the-Loop Execution (AWS Step Functions Saga)
+
+No AI-generated content reaches a client or counterparty without explicit human authorization.
+
+```
+HITL SAGA — NAPCE DDQ/RFP APPROVAL WORKFLOW
+
+Step 1: NAPCE Agent generates draft DDQ/RFP response
+  → Content grounded exclusively in Approved_Production knowledge base
+  → Confidence scores logged per section
+
+Step 2: AWS Step Functions — Wait_For_Callback state
+  → Activity token issued: { task_token: "sfn_token_abc123", expiry: "72h" }
+  → Workflow PAUSES — execution cost: $0 while waiting
+  → Principal Portfolio Manager / Compliance Officer notified via Salesforce task
+
+Step 3: Human review in Salesforce Lightning Web Component
+  → AI draft presented with source citations and confidence scores per section
+  → Reviewer can: Approve / Edit / Reject / Escalate
+
+Step 4: "Approve" action
+  → Step Functions callback: SendTaskSuccess(taskToken: "sfn_token_abc123")
+  → Workflow resumes
+  → Watermarked final PDF generated (reviewer ID embedded)
+  → TransactionLog entry written: { reviewer_id, review_timestamp, original_draft_hash, final_output_hash }
+  → Salesforce Opportunity stage updated: "Proposal Submitted"
+
+TIMEOUT POLICY:
+  → 72-hour HITL timeout → automatic escalation to senior reviewer
+  → 96-hour escalation → CloudWatch alarm → Head of Client Technology notification
+```
+
+**Governance outcome:** The AI accelerates document production by 90%+; the human retains legal and regulatory accountability for every document submitted.
+
+#### Pillar 5 — Immutable Audit Trail
+
+Every AI-generated output, every human modification, and every approval is permanently recorded and independently verifiable by Compliance, Legal, and regulators.
+
+```
+THREE-PAYLOAD AUDIT ARCHITECTURE
+
+Payload 1 — Raw AI Output:
+  { 
+    "payload_type": "ai_generated",
+    "bedrock_request_id": "br-xxxx",
+    "model_id": "anthropic.claude-3-5-sonnet",
+    "retrieved_chunks": ["chunk_id_1", "chunk_id_2", ...],
+    "raw_response": "...",
+    "confidence_scores": { "section_1": 0.94, "section_2": 0.88 }
+  }
+
+Payload 2 — Human-Submitted Output:
+  {
+    "payload_type": "human_approved",
+    "reviewer_id": "khm@nomura.com",
+    "reviewer_role": "Principal Portfolio Manager",
+    "final_text": "...",
+    "review_timestamp": "2026-02-14T14:23:11Z",
+    "approval_method": "step_functions_callback"
+  }
+
+Payload 3 — Diff Delta (Machine-Readable):
+  {
+    "payload_type": "diff_delta",
+    "diff": [{ "op": "replace", "path": "/sections/2/text", 
+               "old": "...", "new": "..." }],
+    "delta_lines_changed": 7,
+    "human_intervention_score": 0.12  // 12% of content modified by human
+  }
+
+STORAGE ARCHITECTURE:
+  Primary: Snowflake Immutable Tables (append-only, no UPDATE/DELETE)
+           → CRO-queryable: "Show me all proposals where human modified >20% of AI draft"
+  Mirrored: Amazon QLDB (cryptographic digest chain — SHA-256 journal hash; independently
+            verifiable without distributed consensus; suitable for regulated audit trail use)
+  S3 Object Lock (COMPLIANCE mode):
+    → 7-year retention per SEC 17a-4 / GIPS 2019 Annex B
+    → Root override disabled; no administrator can shorten retention period
+```
+
+**Governance outcome:** Regulators (SEC, FINRA, internal Compliance) can reconstruct the exact provenance of any client document — what the AI said, what the human changed, who approved it, and when.
+
+### Compliance Framework Alignment
+
+| Standard | Requirement | Architecture Mapping |
+|---|---|---|
+| **ISO/IEC 42001** (AI Management System) | Risk management, transparency, accountability for AI systems | Pillars 2 (ownership), 4 (HITL), 5 (audit trail) directly satisfy ISO 42001 Annex A controls |
+| **NIST AI RMF** (AI Risk Management Framework) | Govern, Map, Measure, Manage AI risks | Pillar 1 (content currency) = Manage; Pillar 3 (centralized updates) = Govern; Pillar 5 (audit) = Measure |
+| **SEC 17a-4** (Records Retention) | 7-year immutable retention of broker communications | S3 Object Lock COMPLIANCE mode; QLDB cryptographic chain |
+| **FINRA Rule 4511** (Books and Records) | Accurate and current records; retrievable on demand | Snowflake Immutable Tables with CRO query access |
+| **GIPS 2019 Annex B** | Composite methodology documentation; annual verifier access | Immutable audit trail provides verifier-accessible documentation |
+
+---
+
 ## 6. PROACTIVE MITIGATIONS — THE "LEMONS" TABLE
 
 | Risk Area | Risk Description | Proactive Mitigation Strategy (The "Lemon Squeezer") |
@@ -609,6 +840,9 @@ Separate Snowflake virtual warehouses per consumer mean **quarter-end data loadi
 | **Data Privacy Leaks (GDPR/CCPA)** | Wealth advisor accesses a client in a different department; AI Chatbot exposes PII in LLM conversation context | Snowflake Horizon Dynamic Data Masking + Row-Level Security enforced at column level — not in application code, not removable by application developers. AI Chatbot role `AI_CHATBOT_SERVICE` blocked from SSN, masked on account numbers by architecture. GDPR right-to-forget: anonymize-in-place (hash + retain audit proof) without breaking 7-year audit chain. |
 | **FinOps Cost Explosion** | Snowflake on-demand compute charges scale unexpectedly as AI Chatbot concurrency grows | Separate virtual warehouses with Snowflake Resource Monitors: credit quota per warehouse per hour. Elasticache 94% hit rate eliminates majority of Snowflake compute. AI Chatbot uses `NOMURA_AI_WH` (auto-suspend after 60 seconds idle). Cost alert: `warehouse_spend > $500/hour` → auto-suspend + PagerDuty. Monthly FinOps review: cost per chatbot query, cost per advisor session. |
 | **Cortex AI Bias in Churn Scoring** | AUM churn risk model produces biased scores that systematically under-rank clients from certain geographies or product categories | AUM churn risk model (Snowflake Cortex) outputs logged with input features. Monthly model drift detection: compare predicted churn vs. actual AUM outflows (30-day lag). If drift > 5%, trigger model revalidation with Performance Team. Human RM alert (churn_risk > 70) requires RM confirmation before automated retention intervention is triggered — AI recommends, human acts. |
+| **Fine-Tuning Misconception** | Team proposes to "retrain the AI agent" when fund strategy, fee schedule, or GIPS methodology changes — baking facts into static model weights. Each factual update requires full model retrain ($50K–$500K, 4–8 weeks). After retraining, the old answer is permanently overwritten — no audit trail of what the model previously said. | **Architecture enforces RAG-only for factual content and prohibits fine-tuning for facts.** Knowledge base in OpenSearch is updated via the Closed-Loop Feedback DAG (Pillar 3 above) — surgical, auditable, immediate. Fine-tuning is reserved exclusively for tone and jargon calibration (e.g., "use GIPS-precise language") — never for factual content that must be updatable and auditable. |
+| **"Frankenstein" Answers (Policy Synthesis)** | Bedrock retrieves fragments from two overlapping policy documents (e.g., 2024 RFP template and 2025 RFP template) and synthesizes a chimera answer — technically fluent, factually incorrect, and untraceable to any single approved source. Compliance officer submits it to an institutional client. FINRA examination finds two contradictory policy citations in the same document. | **XML constraint in system prompt:** `<rule>Do not synthesize, summarize, or merge content from multiple policy documents. Output retrieved policy text verbatim. If two sources conflict, flag the conflict for human review rather than resolving it.</rule>` Combined with Bedrock Guardrails groundedness threshold (>0.90 minimum) and Pillar 3 Closed-Loop Feedback: conflicting chunks are flagged and routed to the document owner for resolution before re-vectorization. |
+| **Orphaned Knowledge (Employee Departure)** | Senior portfolio manager authors 40 knowledge base chunks covering a niche credit strategy. She departs the firm. Her Entra ID is disabled. The chunks remain active in OpenSearch — no owner to review or update them. Six months later, the credit strategy mandate is terminated, but the AI agent continues citing the departed manager's analysis in live RFPs. | **Workday HR event integration via AWS EventBridge:** on `Employment_Status: Terminated`, EventBridge rule fires Lambda. Lambda queries Salesforce for all knowledge base chunks with `owner_salesforce_id` = departed employee. All chunks are atomically flagged `Status: Requires_Review` — immediately excluded from RAG retrieval (Pillar 1 perimeter). MWAA routes flagged chunks to designated successor's Salesforce review queue with pre-populated ownership transfer form. Knowledge base remains complete but governed. |
 
 ---
 
@@ -712,6 +946,15 @@ Separate Snowflake virtual warehouses per consumer mean **quarter-end data loadi
 
 **Anticipated Question — AI Cataloging Risk:**
 > *"For sensitive financial documents — GIPS-regulated performance data, client IMA agreements — the Human-in-the-Loop step is non-negotiable. The AI suggests; the designated Data Steward approves. For high-risk classifications like GIPS_REGULATED or SEC_17A4, human approval is mandatory regardless of the AI confidence score. The AI provides speed and consistency in metadata suggestion — the human provides regulatory judgment at the final gate."*
+
+**On AI Content Governance (The Strictly Governed RAG Mesh):**
+> *"Kathleen, the most important design decision for the NAPCE DDQ/RFP agent is one you will not see in a typical AI demo: we categorically rejected fine-tuning the LLM with factual financial content. Fine-tuning bakes facts into weights — when a fund strategy changes, the model retains the old answer until a full retrain. For a firm with regulatory obligations, that is not acceptable. Instead, every fact lives in OpenSearch, tagged with an owner and an expiry date. When an answer is wrong, we update the source in the knowledge base — not the prompt, not the model. The correction is live in minutes and is permanently auditable. That distinction — RAG for facts, never fine-tuning — is what makes the system trustworthy enough to put in front of an institutional client."*
+
+**On Content Governance Adoption Sustainability:**
+> *"The AI Digital Agent is only adopted if the people using it trust its output. One wrong answer — especially in a DDQ submission to a $500M institutional prospect — destroys that trust in a way that takes months to rebuild. The 5 Pillars of Content Governance exist precisely to prevent that. Pillar 1 ensures the agent physically cannot cite an expired policy. Pillar 2 ensures every answer has a named owner. Pillars 3 and 4 ensure corrections go through governance before going live. And Pillar 5 means that when a regulator asks 'who approved this response,' we have a cryptographically verified answer in under 60 seconds."*
+
+**Anticipated Kathleen Question:** *"How do we handle it when two policy documents contradict each other and the AI synthesizes an answer from both?"*
+> *"We prevent synthesis architecturally. The system prompt contains an explicit XML-tagged rule: the model must output retrieved policy verbatim and is prohibited from merging or summarizing across sources. If the retrieval layer finds two conflicting chunks, the Bedrock Guardrails groundedness check flags the conflict rather than producing a chimera answer — and the response routes to human review with both source citations visible side by side. The compliance officer resolves the conflict; the corrected answer is re-vectorized via the Closed-Loop Feedback pipeline. The contradiction is eliminated at source, not papered over in a single response."*
 
 ---
 
